@@ -1,4 +1,4 @@
-# nut-manee
+# NoMoney
 
 Private, offline-first expense tracker (Next.js static export, used as an iPhone Home Screen web app).
 
