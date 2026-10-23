@@ -1,8 +1,10 @@
 # NoMoney
 
-Private, offline-first expense tracker (Next.js static export, used as an iPhone Home Screen web app).
+A personal expense tracker, built for my own use.
 
-See [SPEC.md](SPEC.md) for features and the build plan, and [CLAUDE.md](CLAUDE.md) for conventions.
+- **Offline-first**: works without internet; data stays on the device (IndexedDB).
+- **No ads, no accounts, no tracking.**
+- Installed on iPhone as a Home Screen web app.
 
 ```bash
 pnpm install
