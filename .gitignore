@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# backups (real user data) — only synthetic fixtures are committed
+*.paotang
+!docs/fixtures/*.paotang
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
