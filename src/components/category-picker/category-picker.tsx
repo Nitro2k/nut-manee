@@ -14,8 +14,11 @@ interface CategoryPickerProps {
   onChange: (id: ID) => void;
 }
 
-function isPickable(c: Category, type: EntryType): boolean {
-  return c.type === type && c.deletedAt === null && !c.archived;
+const isActive = (c: Category | undefined) => !!c && c.deletedAt === null && !c.archived;
+
+/** Active and of this type; a child also needs an active parent (archiving a parent hides its children). */
+function isPickable(c: Category, type: EntryType, categories: Map<ID, Category>): boolean {
+  return c.type === type && isActive(c) && (!c.parentId || isActive(categories.get(c.parentId)));
 }
 
 /** Recent row + parent grid; a parent with children opens them plus a "General" tile for the parent itself. */
@@ -27,13 +30,13 @@ export function CategoryPicker({ type, value, onChange }: CategoryPickerProps) {
   if (!categories) return null;
 
   const pickable = [...categories.values()]
-    .filter((c) => isPickable(c, type))
+    .filter((c) => isPickable(c, type, categories))
     .sort((a, b) => a.order - b.order);
   const parents = pickable.filter((c) => c.parentId === null);
   const childrenOf = (id: ID) => pickable.filter((c) => c.parentId === id);
   const recent = (recentIds ?? [])
     .map((id) => categories.get(id))
-    .filter((c): c is Category => !!c && isPickable(c, type));
+    .filter((c): c is Category => !!c && isPickable(c, type, categories));
   const openParent = openParentId ? categories.get(openParentId) : undefined;
 
   const selectParent = (parent: Category) => {
