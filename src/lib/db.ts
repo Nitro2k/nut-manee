@@ -34,7 +34,7 @@ export class NoMoneyDB extends Dexie {
     // tombstones (useful for sync), so live rows are filtered with `.filter()`, not `where()`.
     this.version(1).stores({
       transactions:
-        "id, date, [date+type], categoryId, [categoryId+date], accountId, importRef, updatedAt, deletedAt",
+        "id, date, [date+type], categoryId, [categoryId+date], accountId, importRef, linkedExpenseId, updatedAt, deletedAt",
       categories: "id, type, parentId, systemKey, order",
       accounts: "id",
       budgets: "id, categoryId",

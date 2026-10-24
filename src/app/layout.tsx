@@ -18,8 +18,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="antialiased">
-      <body className="flex min-h-dvh flex-col">
-        <AppProviders>{children}</AppProviders>
+      <body className="bg-muted/40">
+        {/* Phone-width column, centered on larger screens. */}
+        <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-background sm:border-x">
+          <AppProviders>{children}</AppProviders>
+        </div>
         {/* Shown via html[data-privacy-blur] when the app goes to the background. */}
         <div className="privacy-blur" aria-hidden />
       </body>

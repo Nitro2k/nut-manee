@@ -22,15 +22,17 @@ interface MoneyProps {
   value: Satang;
   kind: MoneyKind;
   className?: string;
+  /** Skip masking. Only for the entry sheet, where digits stay visible while typing (SPEC §6). */
+  unmasked?: boolean;
 }
 
 /** The only way to display an amount. Masked per privacy settings; tap to reveal, tap again to hide. */
-export function Money({ value, kind, className }: MoneyProps) {
+export function Money({ value, kind, className, unmasked = false }: MoneyProps) {
   const { isMasked, hideEpoch } = usePrivacy();
   // Remember which hide-epoch the reveal belongs to, so going to the background hides it again.
   const [revealedEpoch, setRevealedEpoch] = useState<number | null>(null);
 
-  const masked = isMasked(kind);
+  const masked = !unmasked && isMasked(kind);
   const revealed = revealedEpoch === hideEpoch;
   const showMask = masked && !revealed;
   const text = showMask ? MASK : formatBaht(value);

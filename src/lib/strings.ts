@@ -12,6 +12,37 @@ export const strings = {
   autoHideOnBackground: "Hide again when leaving the app",
   autoHideHint: "Also blurs the app in the app switcher.",
 
+  // Entry sheet
+  addEntry: "Add entry",
+  editEntry: "Edit entry",
+  entrySheetHint: "Type the amount, pick a category, then save.",
+  type: "Type",
+  save: "Save",
+  saved: "Saved",
+  saveFailed: "Couldn't save. Your entry is still here, try again.",
+  delete: "Delete",
+  undo: "Undo",
+  entryDeleted: "Entry deleted",
+  note: "Note",
+  notePlaceholder: "Note (optional)",
+  pickDate: "Pick a date",
+  general: "General",
+  goToMonth: "Go to month",
+  savedTo: (month: string) => `Saved to ${month}`,
+
+  // Home
+  home: "Home",
+  reports: "Reports",
+  search: "Search",
+  more: "More",
+  add: "Add",
+  previousMonth: "Previous month",
+  nextMonth: "Next month",
+  noEntries: "No entries this month",
+  noEntriesHint: "Tap + to add one.",
+  comingSoon: "Coming in a later update.",
+  swipeToDelete: "Swipe left to delete",
+
   // Summary
   income: "Income",
   expense: "Expense",

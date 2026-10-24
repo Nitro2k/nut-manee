@@ -18,6 +18,11 @@ export interface Transaction extends RecordMeta {
   recurringId: ID | null;
   /** Old app's transaction id, for idempotent re-import. */
   importRef: string | null;
+  /**
+   * Cashback (income) only: the expense it came from. null = standalone.
+   * Deleting the expense deletes its linked cashback too; totals still count both at full value.
+   */
+  linkedExpenseId: ID | null;
 }
 
 export interface Category extends RecordMeta {

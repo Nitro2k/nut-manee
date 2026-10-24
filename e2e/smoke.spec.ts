@@ -28,7 +28,7 @@ test("home loads offline-safe, without errors or horizontal scroll", async ({ pa
   });
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "NoMoney" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add", exact: true })).toBeVisible();
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
