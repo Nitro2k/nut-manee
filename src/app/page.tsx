@@ -1,6 +1,7 @@
 "use client";
 
 import { AppHeader } from "@/components/app-header";
+import { BackupReminder } from "@/components/home/backup-reminder";
 import { EntryList } from "@/components/home/entry-list";
 import { InstallHint } from "@/components/home/install-hint";
 import { MonthSwitcher } from "@/components/home/month-switcher";
@@ -30,6 +31,7 @@ export default function Home() {
       <main className={TAB_BAR_SPACE}>
         <div className="space-y-3 p-4">
           <InstallHint />
+          <BackupReminder settings={settings} />
           <SummaryCard
             totals={totals(transactions ?? [])}
             onSwipe={(direction) => setMonth(addMonthsStr(month, direction))}

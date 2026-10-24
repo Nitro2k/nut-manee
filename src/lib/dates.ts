@@ -76,3 +76,15 @@ export function formatDayLabel(date: DateStr, yearFormat: YearFormat, today = to
     ? label
     : `${label} ${formatYear(d.getFullYear(), yearFormat)}`;
 }
+
+/** "19 Oct 2026" or "19 Oct 2569". */
+export function formatDate(date: DateStr, yearFormat: YearFormat): string {
+  const d = parseISO(date);
+  return `${format(d, "d MMM")} ${formatYear(d.getFullYear(), yearFormat)}`;
+}
+
+/** "19 Oct 2026, 14:05" in this device's time. */
+export function formatDateTime(iso: ISODateTime, yearFormat: YearFormat): string {
+  const d = new Date(iso);
+  return `${formatDate(toDateStr(d), yearFormat)}, ${toTimeStr(d)}`;
+}

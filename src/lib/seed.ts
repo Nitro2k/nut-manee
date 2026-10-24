@@ -4,7 +4,7 @@ import { newId, newMeta } from "@/lib/repo/base";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, type SeedCategory } from "@/lib/seed-data";
 import type { Account, Category, EntryType, Settings } from "@/types";
 
-const SEEDED_KEY = "seededAt";
+export const SEEDED_KEY = "seededAt";
 
 function buildCategories(type: EntryType, seeds: SeedCategory[], now: string): Category[] {
   const rows: Category[] = [];
