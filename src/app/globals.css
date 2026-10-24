@@ -87,3 +87,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Privacy: blur the app for the iOS app-switcher snapshot (see lib/privacy.ts).
+   Blur the content itself (filter) rather than relying on backdrop-filter. */
+.privacy-blur {
+  display: none;
+}
+html[data-privacy-blur] body > :not(.privacy-blur) {
+  filter: blur(16px);
+}
+html[data-privacy-blur] .privacy-blur {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(255 255 255 / 0.5);
+}
