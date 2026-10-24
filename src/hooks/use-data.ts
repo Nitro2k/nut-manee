@@ -3,6 +3,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { monthRange } from "@/lib/dates";
+import { listBudgets } from "@/lib/repo/budgets";
 import { SETTINGS_ID } from "@/lib/repo/settings";
 import { listTransactions, recentCategoryIds } from "@/lib/repo/transactions";
 import type { Category, EntryType, ID, MonthStr } from "@/types";
@@ -30,4 +31,8 @@ export function useCategoryMap() {
 
 export function useRecentCategoryIds(type: EntryType) {
   return useLiveQuery(() => recentCategoryIds(type), [type]);
+}
+
+export function useBudgets() {
+  return useLiveQuery(listBudgets, []);
 }

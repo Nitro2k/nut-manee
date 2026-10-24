@@ -168,6 +168,19 @@ export const strings = {
   recurringKeepsEntries: "Entries already added stay.",
   invalidAmount: "Enter an amount",
 
+  // Budgets
+  budgets: "Budgets",
+  budgetsHint:
+    "Monthly limits for top-level expense categories. Subcategories count toward their parent.",
+  noLimit: "No limit",
+  monthlyLimit: "Monthly limit",
+  setLimit: "Set limit",
+  budgetFor: (name: string) => `Budget for ${name}`,
+  budgetSheetHint: "Leave it empty or tap No limit to remove the limit.",
+  percentUsed: (percent: number) => `${percent}%`,
+  overBudget: "Over budget",
+  budgetAlertsLabel: "Budget alerts",
+
   // Storage
   storage: "Storage",
   storageUsed: "Used on this device",

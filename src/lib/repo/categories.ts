@@ -71,6 +71,8 @@ export async function updateCategory(
     await assertValidParent(changes.parentId, current.type);
     // Moved under another parent: append after its new siblings.
     changes = { ...changes, order: (await siblingsOf(current.type, changes.parentId)).length };
+    // Budgets are for top-level categories only.
+    if (changes.parentId !== null) await removeBudgets(id);
   }
   await updateLive(db.categories, id, changes);
 }
@@ -141,9 +143,13 @@ async function assertRemovable(category: Category): Promise<CategoryUsage> {
   return usage;
 }
 
-async function removeCategory(id: ID): Promise<void> {
-  const budgets = await db.budgets.where("categoryId").equals(id).filter(isLive).toArray();
+async function removeBudgets(categoryId: ID): Promise<void> {
+  const budgets = await db.budgets.where("categoryId").equals(categoryId).filter(isLive).toArray();
   for (const budget of budgets) await softDelete(db.budgets, budget.id);
+}
+
+async function removeCategory(id: ID): Promise<void> {
+  await removeBudgets(id);
   await softDelete(db.categories, id);
 }
 

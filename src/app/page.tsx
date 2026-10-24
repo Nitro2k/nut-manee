@@ -2,6 +2,7 @@
 
 import { AppHeader } from "@/components/app-header";
 import { BackupReminder } from "@/components/home/backup-reminder";
+import { BudgetAlerts } from "@/components/home/budget-alerts";
 import { DueRecurring } from "@/components/home/due-recurring";
 import { EntryList } from "@/components/home/entry-list";
 import { InstallHint } from "@/components/home/install-hint";
@@ -37,6 +38,9 @@ export default function Home() {
             totals={totals(transactions ?? [])}
             onSwipe={(direction) => setMonth(addMonthsStr(month, direction))}
           />
+          {transactions && categories && (
+            <BudgetAlerts transactions={transactions} categories={categories} />
+          )}
           <DueRecurring yearFormat={settings.yearFormat} />
         </div>
         {transactions && categories && transactions.length > 0 && (
