@@ -39,7 +39,7 @@ export class NoMoneyDB extends Dexie {
       accounts: "id",
       budgets: "id, categoryId",
       recurring: "id",
-      templates: "id, order",
+      templates: "id, order", // unused (feature dropped), kept so v1 stays valid
       settings: "id",
       meta: "key",
     });

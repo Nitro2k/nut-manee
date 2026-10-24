@@ -77,6 +77,10 @@ export interface Recurring extends RecordMeta {
   active: boolean;
 }
 
+/**
+ * Unused: templates were dropped from v1 (SPEC §2). The table stays in schema v1 so existing
+ * databases and backup files stay valid; it is always empty.
+ */
 export interface Template extends RecordMeta {
   id: ID;
   label: string;
