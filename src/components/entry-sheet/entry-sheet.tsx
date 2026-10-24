@@ -13,6 +13,7 @@ import { useSettings } from "@/hooks/use-data";
 import { displayExpr, evaluate, hasPendingOp, pressKey, type CalcKey } from "@/lib/calc";
 import { formatMonth, todayStr, toMonthStr, toTimeStr } from "@/lib/dates";
 import { isValidAmount, MAX_AMOUNT, toBahtString } from "@/lib/money";
+import { addDueEntry } from "@/lib/repo/recurring";
 import {
   addTransaction,
   deleteTransaction,
@@ -64,14 +65,17 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
   const settings = useSettings();
   const { month, setMonth } = useMonth();
   const editing = target.mode === "edit" ? target.transaction : null;
+  const due = target.mode === "due" ? target : null;
+  // Fields to start from: the entry being edited, or the due recurring item.
+  const initial = editing ?? due?.recurring;
 
   const [type, setType] = useState<EntryType>(
-    editing?.type ?? (target.mode === "add" ? target.type : undefined) ?? "expense",
+    initial?.type ?? (target.mode === "add" ? target.type : undefined) ?? "expense",
   );
-  const [expr, setExpr] = useState(editing ? toExpr(editing.amount) : "");
-  const [categoryId, setCategoryId] = useState<ID | null>(editing?.categoryId ?? null);
-  const [date, setDate] = useState<DateStr>(editing?.date ?? todayStr());
-  const [note, setNote] = useState(editing?.note ?? "");
+  const [expr, setExpr] = useState(initial ? toExpr(initial.amount) : "");
+  const [categoryId, setCategoryId] = useState<ID | null>(initial?.categoryId ?? null);
+  const [date, setDate] = useState<DateStr>(editing?.date ?? due?.due.date ?? todayStr());
+  const [note, setNote] = useState(initial?.note ?? "");
   const [saving, setSaving] = useState(false);
 
   const amount = evaluate(expr);
@@ -80,7 +84,8 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
   const canSave = !pending && valid && categoryId !== null && !saving;
 
   const changeType = (next: EntryType) => {
-    if (next === type) return;
+    // A due recurring entry keeps the item's type.
+    if (next === type || due) return;
     setType(next);
     setCategoryId(null);
   };
@@ -96,6 +101,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
     try {
       const fields = { type, amount, categoryId, date, note: note.trim() };
       if (editing) await updateTransaction(editing.id, fields);
+      else if (due) await addDueEntry(due.recurring.id, due.due.period, fields);
       else
         await addTransaction({
           ...fields,
@@ -148,8 +154,9 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
               type="button"
               role="radio"
               aria-checked={type === t}
+              disabled={!!due && t !== type}
               className={cn(
-                "h-9 rounded-full px-4 text-sm font-medium",
+                "h-9 rounded-full px-4 text-sm font-medium disabled:opacity-40",
                 type === t && "bg-background shadow-sm",
                 type === t && (t === "income" ? "text-emerald-600" : "text-red-600"),
               )}
@@ -216,7 +223,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
           primaryLabel={pending ? "=" : strings.save}
           primaryDisabled={pending ? false : !canSave}
           onPrimary={() => (pending ? resolve() : void save(false))}
-          onPrimaryLongPress={editing || pending ? undefined : () => void save(true)}
+          onPrimaryLongPress={editing || due || pending ? undefined : () => void save(true)}
         />
       </div>
     </div>

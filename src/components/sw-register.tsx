@@ -43,11 +43,11 @@ export function ServiceWorkerRegister() {
         if (reg.waiting && navigator.serviceWorker.controller) offerUpdate(reg.waiting);
         reg.addEventListener("updatefound", () => {
           const installing = reg.installing;
+          // Decide now: with no active worker yet this is the first install, not an update.
+          // (Checking `controller` later is racy: clients.claim() can set it before "installed".)
+          const isUpdate = !!reg.active;
           installing?.addEventListener("statechange", () => {
-            // With no controller this is the first install, not an update.
-            if (installing.state === "installed" && navigator.serviceWorker.controller) {
-              offerUpdate(installing);
-            }
+            if (isUpdate && installing.state === "installed") offerUpdate(installing);
           });
         });
       })

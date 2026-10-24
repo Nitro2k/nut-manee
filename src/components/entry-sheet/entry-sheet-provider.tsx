@@ -1,15 +1,20 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { EntryType, Transaction } from "@/types";
+import type { DuePeriod } from "@/lib/recurring";
+import type { EntryType, Recurring, Transaction } from "@/types";
 import { EntrySheet } from "./entry-sheet";
 
 export type EntrySheetTarget =
-  { mode: "add"; type?: EntryType } | { mode: "edit"; transaction: Transaction };
+  | { mode: "add"; type?: EntryType }
+  | { mode: "edit"; transaction: Transaction }
+  /** A due recurring item, prefilled; saving adds it and marks the period handled. */
+  | { mode: "due"; recurring: Recurring; due: DuePeriod };
 
 interface EntrySheetContextValue {
   openAdd: (type?: EntryType) => void;
   openEdit: (transaction: Transaction) => void;
+  openDue: (recurring: Recurring, due: DuePeriod) => void;
 }
 
 const EntrySheetContext = createContext<EntrySheetContextValue | null>(null);
@@ -30,6 +35,7 @@ export function EntrySheetProvider({ children }: { children: ReactNode }) {
       value={{
         openAdd: (type) => open({ mode: "add", type }),
         openEdit: (transaction) => open({ mode: "edit", transaction }),
+        openDue: (recurring, due) => open({ mode: "due", recurring, due }),
       }}
     >
       {children}

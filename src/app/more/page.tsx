@@ -1,10 +1,11 @@
-import { ChevronRight, DatabaseBackup, Shapes, type LucideIcon } from "lucide-react";
+import { ChevronRight, DatabaseBackup, Repeat, Shapes, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { strings } from "@/lib/strings";
 
 const LINKS: { href: string; label: string; Icon: LucideIcon }[] = [
   { href: "/more/categories/", label: strings.categories, Icon: Shapes },
+  { href: "/more/recurring/", label: strings.recurring, Icon: Repeat },
   { href: "/more/backup/", label: strings.backupAndData, Icon: DatabaseBackup },
 ];
 
