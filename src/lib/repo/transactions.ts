@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { nowISO } from "@/lib/dates";
 import { isValidAmount } from "@/lib/money";
-import type { DateStr, EntryType, ID, Transaction } from "@/types";
+import type { DateStr, EntryType, ID, Satang, Transaction } from "@/types";
 import {
   getLive,
   isLive,
@@ -69,10 +69,15 @@ export async function updateTransaction(id: ID, changes: TransactionChanges): Pr
   if (changes.linkedExpenseId !== undefined || changes.type !== undefined) {
     const current = await getLive(db.transactions, id);
     if (!current) throw new NotFoundError("transactions", id);
+    const type = changes.type ?? current.type;
+    // `null` means "unlink", so only fall back when the field wasn't given.
     await assertLink(
-      changes.type ?? current.type,
-      changes.linkedExpenseId ?? current.linkedExpenseId,
+      type,
+      changes.linkedExpenseId !== undefined ? changes.linkedExpenseId : current.linkedExpenseId,
     );
+    if (current.type === "expense" && type !== "expense" && (await listLinkedCashback(id)).length) {
+      throw new InvalidLinkError("This expense has cashback linked to it");
+    }
   }
   await updateLive(db.transactions, id, changes);
 }
@@ -155,4 +160,57 @@ export async function recentCategoryIds(type: EntryType, limit = 8, sample = 100
     .sort(([, a], [, b]) => b.count - a.count || a.firstSeen - b.firstSeen)
     .slice(0, limit)
     .map(([id]) => id);
+}
+
+/** Where new cashback goes: Cashback › its first source (Credit card), else Cashback itself. */
+async function cashbackCategoryId(): Promise<ID> {
+  const root = await db.categories.where("systemKey").equals("cashback").filter(isLive).first();
+  if (!root) throw new Error("Cashback category missing");
+  const sources = await db.categories
+    .where("parentId")
+    .equals(root.id)
+    .filter((c) => isLive(c) && !c.archived)
+    .toArray();
+  return sources.sort((a, b) => a.order - b.order)[0]?.id ?? root.id;
+}
+
+/**
+ * Make an expense's linked cashback equal `amount` (null = none), as one entry on the
+ * expense's date: update the existing one, add one in Cashback › Credit card, or soft-delete.
+ * Run it in the same Dexie transaction as the expense save (tables: transactions, categories),
+ * awaited inside an `async` callback (a plain arrow returning it commits too early).
+ */
+export async function setExpenseCashback(
+  expense: Pick<Transaction, "id" | "date" | "time" | "accountId">,
+  amount: Satang | null,
+): Promise<void> {
+  const linked = (await listLinkedCashback(expense.id)).sort((a, b) =>
+    a.createdAt.localeCompare(b.createdAt),
+  );
+  const [keep, ...extra] = amount ? linked : [];
+  const now = nowISO();
+  const removed = amount ? extra : linked;
+  if (removed.length) {
+    await db.transactions.bulkUpdate(
+      removed.map((t) => ({ key: t.id, changes: { deletedAt: now, updatedAt: now } })),
+    );
+  }
+  if (!amount) return;
+  assertAmount(amount);
+  if (keep) {
+    if (keep.amount !== amount || keep.date !== expense.date) {
+      await db.transactions.update(keep.id, { amount, date: expense.date, updatedAt: now });
+    }
+    return;
+  }
+  await addTransaction({
+    type: "income",
+    amount,
+    categoryId: await cashbackCategoryId(),
+    accountId: expense.accountId,
+    date: expense.date,
+    time: expense.time,
+    note: "",
+    linkedExpenseId: expense.id,
+  });
 }

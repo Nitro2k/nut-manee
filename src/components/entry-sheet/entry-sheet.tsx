@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { BadgePercent, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CategoryPicker } from "@/components/category-picker/category-picker";
@@ -9,15 +9,17 @@ import { useMonth } from "@/components/month-provider";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
-import { useSettings } from "@/hooks/use-data";
+import { useLinkedCashback, useSettings } from "@/hooks/use-data";
 import { displayExpr, evaluate, hasPendingOp, pressKey, type CalcKey } from "@/lib/calc";
+import { db } from "@/lib/db";
 import { formatMonth, todayStr, toMonthStr, toTimeStr } from "@/lib/dates";
-import { isValidAmount, MAX_AMOUNT, toBahtString } from "@/lib/money";
+import { isValidAmount, MAX_AMOUNT, parseBaht, sumSatang, toBahtString } from "@/lib/money";
 import { addDueEntry } from "@/lib/repo/recurring";
 import {
   addTransaction,
   deleteTransaction,
   restoreTransaction,
+  setExpenseCashback,
   updateTransaction,
 } from "@/lib/repo/transactions";
 import { ensurePersisted } from "@/lib/storage";
@@ -68,6 +70,9 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
   const due = target.mode === "due" ? target : null;
   // Fields to start from: the entry being edited, or the due recurring item.
   const initial = editing ?? due?.recurring;
+  const linkedCashback = useLinkedCashback(editing?.type === "expense" ? editing.id : undefined);
+  // Type can't change for due items, cashback entries, or an expense with cashback linked.
+  const typeLocked = !!due || !!editing?.linkedExpenseId || (linkedCashback?.length ?? 0) > 0;
 
   const [type, setType] = useState<EntryType>(
     initial?.type ?? (target.mode === "add" ? target.type : undefined) ?? "expense",
@@ -76,16 +81,28 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
   const [categoryId, setCategoryId] = useState<ID | null>(initial?.categoryId ?? null);
   const [date, setDate] = useState<DateStr>(editing?.date ?? due?.due.date ?? todayStr());
   const [note, setNote] = useState(initial?.note ?? "");
+  // null = untouched: show (and keep) the linked cashback, which loads after the first render.
+  const [cashbackText, setCashbackText] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const amount = evaluate(expr);
   const pending = hasPendingOp(expr);
   const valid = amount !== null && isValidAmount(amount);
-  const canSave = !pending && valid && categoryId !== null && !saving;
+
+  // Cashback (expense only): saved with the expense as Cashback › Credit card income.
+  const showCashback = type === "expense" && (target.mode === "add" || !!editing);
+  const linkedTotal = linkedCashback?.length ? sumSatang(linkedCashback.map((t) => t.amount)) : 0;
+  const cashbackValue = cashbackText ?? (linkedTotal ? toExpr(linkedTotal) : "");
+  const cashback = cashbackValue.trim() === "" ? null : parseBaht(cashbackValue);
+  const cashbackValid =
+    cashbackValue.trim() === "" ||
+    (cashback !== null && isValidAmount(cashback) && (amount === null || cashback <= amount));
+
+  const canSave =
+    !pending && valid && categoryId !== null && !saving && (!showCashback || cashbackValid);
 
   const changeType = (next: EntryType) => {
-    // A due recurring entry keeps the item's type.
-    if (next === type || due) return;
+    if (next === type || typeLocked) return;
     setType(next);
     setCategoryId(null);
   };
@@ -100,14 +117,25 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
     setSaving(true);
     try {
       const fields = { type, amount, categoryId, date, note: note.trim() };
-      if (editing) await updateTransaction(editing.id, fields);
-      else if (due) await addDueEntry(due.recurring.id, due.due.period, fields);
-      else
-        await addTransaction({
-          ...fields,
-          accountId: settings.defaultAccountId,
-          time: toTimeStr(new Date()),
+      if (due) {
+        await addDueEntry(due.recurring.id, due.due.period, fields);
+      } else {
+        // Expense + its cashback in one transaction: both are saved, or neither.
+        await db.transaction("rw", [db.transactions, db.categories], async () => {
+          const expense = editing
+            ? { ...editing, ...fields }
+            : await addTransaction({
+                ...fields,
+                accountId: settings.defaultAccountId,
+                time: toTimeStr(new Date()),
+              });
+          if (editing) await updateTransaction(editing.id, fields);
+          // Skip while untouched and not loaded yet; otherwise sync (also moves its date).
+          if (showCashback && (cashbackText !== null || linkedCashback)) {
+            await setExpenseCashback(expense, cashback);
+          }
         });
+      }
 
       void ensurePersisted(); // no-op once granted
       const savedMonth = toMonthStr(date);
@@ -119,6 +147,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
       if (addAnother) {
         setExpr("");
         setNote("");
+        setCashbackText(null);
         setCategoryId(null);
         toast(strings.saved, { duration: 1500 });
       } else {
@@ -154,7 +183,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
               type="button"
               role="radio"
               aria-checked={type === t}
-              disabled={!!due && t !== type}
+              disabled={typeLocked && t !== type}
               className={cn(
                 "h-9 rounded-full px-4 text-sm font-medium disabled:opacity-40",
                 type === t && "bg-background shadow-sm",
@@ -206,15 +235,36 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
 
       <div className="space-y-2 border-t px-4 py-2">
         {settings && <DateChip value={date} onChange={setDate} yearFormat={settings.yearFormat} />}
-        <Input
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder={strings.notePlaceholder}
-          aria-label={strings.note}
-          className="h-11 text-base"
-          enterKeyHint="done"
-          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-        />
+        <div className="flex gap-2">
+          <Input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={strings.notePlaceholder}
+            aria-label={strings.note}
+            className="h-11 flex-1 text-base"
+            enterKeyHint="done"
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+          />
+          {showCashback && (
+            <div className="relative w-32">
+              <BadgePercent
+                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-emerald-600"
+                aria-hidden
+              />
+              <Input
+                value={cashbackValue}
+                onChange={(e) => setCashbackText(e.target.value.replace(/[^\d.]/g, ""))}
+                placeholder={strings.cashbackPlaceholder}
+                aria-label={strings.cashbackLabel}
+                aria-invalid={!cashbackValid}
+                inputMode="decimal"
+                className="h-11 pl-8 text-base text-emerald-600 tabular-nums"
+                enterKeyHint="done"
+                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="pb-[env(safe-area-inset-bottom)]">

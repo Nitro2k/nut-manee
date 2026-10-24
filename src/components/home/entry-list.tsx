@@ -5,10 +5,12 @@ import { showDeletedToast } from "@/components/entry-sheet/entry-sheet";
 import { useEntrySheet } from "@/components/entry-sheet/entry-sheet-provider";
 import { Money } from "@/components/money";
 import { SwipeRow } from "@/components/swipe-row";
+import { useCashbackTotals } from "@/hooks/use-data";
 import { groupByDay } from "@/lib/aggregate";
 import { formatDayLabel, todayStr } from "@/lib/dates";
 import { deleteTransaction } from "@/lib/repo/transactions";
-import type { Category, ID, Transaction, YearFormat } from "@/types";
+import { strings } from "@/lib/strings";
+import type { Category, ID, Satang, Transaction, YearFormat } from "@/types";
 
 interface EntryListProps {
   transactions: Transaction[];
@@ -19,6 +21,9 @@ interface EntryListProps {
 /** Entries grouped by day with sticky day headers and a daily net. */
 export function EntryList({ transactions, categories, yearFormat }: EntryListProps) {
   const today = todayStr();
+  const cashback = useCashbackTotals(
+    transactions.filter((t) => t.type === "expense").map((t) => t.id),
+  );
   return (
     <div>
       {groupByDay(transactions).map((group) => (
@@ -30,7 +35,7 @@ export function EntryList({ transactions, categories, yearFormat }: EntryListPro
           <ul className="divide-y">
             {group.transactions.map((t) => (
               <li key={t.id}>
-                <EntryRow transaction={t} categories={categories} />
+                <EntryRow transaction={t} categories={categories} cashback={cashback?.get(t.id)} />
               </li>
             ))}
           </ul>
@@ -43,9 +48,12 @@ export function EntryList({ transactions, categories, yearFormat }: EntryListPro
 function EntryRow({
   transaction: t,
   categories,
+  cashback,
 }: {
   transaction: Transaction;
   categories: Map<ID, Category>;
+  /** Total cashback linked to this expense (full price is still what counts). */
+  cashback?: Satang;
 }) {
   const { openEdit } = useEntrySheet();
   const category = categories.get(t.categoryId);
@@ -79,6 +87,11 @@ function EntryRow({
             )}
           </span>
           {t.note && <span className="block truncate text-xs text-muted-foreground">{t.note}</span>}
+          {cashback !== undefined && (
+            <span className="block text-xs text-muted-foreground">
+              {strings.cashbackLine} <Money value={cashback} kind="income" />
+            </span>
+          )}
         </span>
         <Money value={t.amount} kind={t.type} className="text-sm font-medium" />
       </div>

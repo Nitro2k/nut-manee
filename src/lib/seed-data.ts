@@ -129,7 +129,6 @@ export const INCOME_CATEGORIES: SeedCategory[] = [
     systemKey: "cashback",
     children: [
       { name: "Credit card", icon: "credit-card" },
-      { name: "ThisPay", icon: "wallet" },
       { name: "Other", icon: "circle-ellipsis", systemKey: "cashback-other" },
     ],
   },

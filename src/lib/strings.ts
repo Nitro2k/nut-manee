@@ -132,6 +132,11 @@ export const strings = {
   categorySaved: "Saved",
   nameRequired: "Enter a name",
 
+  // Cashback
+  cashbackLabel: "Cashback (credit card)",
+  cashbackPlaceholder: "Cashback",
+  cashbackLine: "Cashback",
+
   // Recurring
   recurring: "Recurring",
   addRecurring: "Add recurring",
