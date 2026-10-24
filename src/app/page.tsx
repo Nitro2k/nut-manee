@@ -2,6 +2,7 @@
 
 import { AppHeader } from "@/components/app-header";
 import { EntryList } from "@/components/home/entry-list";
+import { InstallHint } from "@/components/home/install-hint";
 import { MonthSwitcher } from "@/components/home/month-switcher";
 import { SummaryCard } from "@/components/home/summary-card";
 import { useMonth } from "@/components/month-provider";
@@ -27,7 +28,8 @@ export default function Home() {
         right={<PrivacyMenu />}
       />
       <main className={TAB_BAR_SPACE}>
-        <div className="p-4">
+        <div className="space-y-3 p-4">
+          <InstallHint />
           <SummaryCard
             totals={totals(transactions ?? [])}
             onSwipe={(direction) => setMonth(addMonthsStr(month, direction))}

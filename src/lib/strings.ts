@@ -43,6 +43,26 @@ export const strings = {
   comingSoon: "Coming in a later update.",
   swipeToDelete: "Swipe left to delete",
 
+  // Offline / install
+  updateAvailable: "Update available",
+  reload: "Reload",
+  installTitle: "Add NoMoney to your Home Screen",
+  installBody:
+    "Tap Share, then Add to Home Screen. In a normal Safari tab, your data can be cleared after 7 days without use.",
+  dismiss: "Dismiss",
+
+  // Storage
+  storage: "Storage",
+  storageUsed: "Used on this device",
+  storageUsedHint: "Your data plus the app's offline files.",
+  storageOf: (used: string, quota: string) => `${used} of ${quota}`,
+  storageUnknown: "Unknown",
+  entries: "Entries",
+  storagePersisted: "Protected from clearing",
+  storagePersistedYes: "Yes",
+  storagePersistedNo: "Not yet",
+  storagePersistedHint: "Add to Home Screen so the browser keeps your data when space runs low.",
+
   // Summary
   income: "Income",
   expense: "Expense",

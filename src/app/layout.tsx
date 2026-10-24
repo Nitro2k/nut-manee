@@ -6,6 +6,13 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "NoMoney",
   description: "Private, offline-first expense tracker",
+  applicationName: "NoMoney",
+  appleWebApp: { capable: true, title: "NoMoney", statusBarStyle: "default" },
+  icons: {
+    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {

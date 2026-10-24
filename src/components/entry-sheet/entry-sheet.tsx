@@ -19,6 +19,7 @@ import {
   restoreTransaction,
   updateTransaction,
 } from "@/lib/repo/transactions";
+import { ensurePersisted } from "@/lib/storage";
 import { strings } from "@/lib/strings";
 import { cn } from "@/lib/utils";
 import type { DateStr, EntryType, ID } from "@/types";
@@ -102,6 +103,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
           time: toTimeStr(new Date()),
         });
 
+      void ensurePersisted(); // no-op once granted
       const savedMonth = toMonthStr(date);
       if (savedMonth !== month) {
         toast(strings.savedTo(formatMonth(savedMonth, settings.yearFormat)), {
