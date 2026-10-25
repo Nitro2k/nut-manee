@@ -246,6 +246,32 @@ export const strings = {
   updateDownloading: "Downloading the update…",
   updateUnavailable: "Updates work in the installed app, when online.",
 
+  // Import from old app (.paotang)
+  importOld: "Import from old app",
+  importOldHint: "Bring in your history from a .paotang backup.",
+  importTitle: "Import from old app",
+  importIntro: "Nothing is saved until you tap Import.",
+  reading: "Reading the file…",
+  importDates: "Dates",
+  importEntries: "Entries to import",
+  importAlready: "Already imported",
+  importSkipped: "Skipped",
+  importSkippedDetail: (deleted: number, zero: number) => `${deleted} deleted, ${zero} with ฿0`,
+  balanceMatches: "Matches the old app's balance",
+  balanceDiffers: "Differs from the old app's balance by",
+  cleanupsTitle: "Tidy up from notes",
+  cleanupsHint: "Move entries to better categories based on their note.",
+  newCategories: "New categories",
+  categoryMapping: (count: number) => `Category mapping (${count})`,
+  possibleDuplicates: (count: number) =>
+    `${count.toLocaleString("en-US")} entries look like duplicates (same day, amount and category). They're imported anyway.`,
+  importButton: (count: number) => `Import ${count.toLocaleString("en-US")} entries`,
+  nothingToImport: "Nothing new to import",
+  imported: (count: number) => `Imported ${count.toLocaleString("en-US")} entries`,
+  importFailed: "Couldn't import. Nothing was changed.",
+  importNotJson: "This isn't an old-app backup (.paotang).",
+  importInvalid: (detail: string) => `This backup has a problem: ${detail}`,
+
   // Storage
   storage: "Storage",
   storageUsed: "Used on this device",

@@ -1,12 +1,13 @@
 "use client";
 
-import { ChevronLeft, Download, FileSpreadsheet, Upload } from "lucide-react";
+import { ChevronLeft, Download, FileSpreadsheet, History, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
 import { exportBackup, exportCsv } from "@/components/backup/export-actions";
 import { RestoreSheet } from "@/components/backup/restore-sheet";
+import { ImportSheet } from "@/components/import/import-sheet";
 import { StorageCard } from "@/components/more/storage-card";
 import { TAB_BAR_SPACE } from "@/components/tab-bar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { readBackupFile } from "@/lib/backup/import";
 import { BackupError } from "@/lib/backup/migrations";
 import type { Backup } from "@/lib/backup/schema";
 import { formatDateTime } from "@/lib/dates";
+import { PaotangError, parsePaotang, type PaotangFile } from "@/lib/import-paotang/schema";
 import { updateSettings } from "@/lib/repo/settings";
 import { strings } from "@/lib/strings";
 
@@ -29,7 +31,9 @@ const ERROR_MESSAGES: Record<BackupError["reason"], string> = {
 export default function BackupPage() {
   const settings = useSettings();
   const fileInput = useRef<HTMLInputElement>(null);
+  const oldAppInput = useRef<HTMLInputElement>(null);
   const [backup, setBackup] = useState<Backup | null>(null);
+  const [oldApp, setOldApp] = useState<PaotangFile | null>(null);
   const [busy, setBusy] = useState(false);
 
   const busyWhile = async (action: () => Promise<unknown>) => {
@@ -49,6 +53,20 @@ export default function BackupPage() {
       if (!(error instanceof BackupError)) console.error(error);
       toast.error(
         error instanceof BackupError ? ERROR_MESSAGES[error.reason] : strings.errorInvalid,
+      );
+    }
+  };
+
+  const onOldAppFile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      setOldApp(parsePaotang(await file.text()));
+    } catch (error) {
+      if (!(error instanceof PaotangError)) console.error(error);
+      toast.error(
+        error instanceof PaotangError && error.reason === "invalid"
+          ? strings.importInvalid(error.message)
+          : strings.importNotJson,
       );
     }
   };
@@ -117,7 +135,25 @@ export default function BackupPage() {
             disabled={busy}
             onClick={() => fileInput.current?.click()}
           />
+          <ActionRow
+            icon={<History />}
+            label={strings.importOld}
+            hint={strings.importOldHint}
+            disabled={busy}
+            onClick={() => oldAppInput.current?.click()}
+          />
         </section>
+        {/* No `accept`: iOS doesn't know the .paotang type and would grey the file out. */}
+        <input
+          ref={oldAppInput}
+          type="file"
+          className="hidden"
+          data-testid="old-app-input"
+          onChange={(e) => {
+            void onOldAppFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
         <input
           ref={fileInput}
           type="file"
@@ -133,6 +169,7 @@ export default function BackupPage() {
         <StorageCard />
       </main>
       <RestoreSheet backup={backup} onClose={() => setBackup(null)} />
+      <ImportSheet file={oldApp} onClose={() => setOldApp(null)} />
     </>
   );
 }

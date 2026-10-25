@@ -49,6 +49,8 @@ export const EXPENSE_CATEGORIES: SeedCategory[] = [
       { name: "Water", icon: "droplet" },
       { name: "Phone", icon: "smartphone" },
       { name: "Internet", icon: "wifi" },
+      { name: "Insurance", icon: "shield-check" },
+      { name: "AI tools", icon: "bot" },
     ],
   },
   {
