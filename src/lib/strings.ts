@@ -40,7 +40,6 @@ export const strings = {
   nextMonth: "Next month",
   noEntries: "No entries this month",
   noEntriesHint: "Tap + to add one.",
-  comingSoon: "Coming in a later update.",
   swipeToDelete: "Swipe left to delete",
 
   // Offline / install
@@ -209,6 +208,28 @@ export const strings = {
   viewMonth: "Open month",
   monthDetails: (month: string) => `${month}: tap for details`,
   noYearData: "Nothing to report this year",
+
+  // Search
+  searchPlaceholder: "Note, category or amount",
+  filters: "Filters",
+  filtersHint: "Narrow results by category, amount and date.",
+  all: "All",
+  allCategories: "All categories",
+  minAmount: "Min ฿",
+  maxAmount: "Max ฿",
+  amountRange: "Amount",
+  dateRange: "Dates",
+  from: "From",
+  to: "To",
+  clearFilters: "Clear",
+  showResults: "Show results",
+  searchHint: "Search notes, categories or amounts. Thai works too.",
+  noMatches: "No matches",
+  noMatchesHint: "Try fewer words or clear the filters.",
+  resultCount: (count: number) =>
+    `${count.toLocaleString("en-US")} ${count === 1 ? "entry" : "entries"}`,
+  showMore: "Show more",
+  clearSearch: "Clear search",
 
   // Settings (More)
   display: "Display",

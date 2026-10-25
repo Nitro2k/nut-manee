@@ -45,15 +45,19 @@ export function EntryList({ transactions, categories, yearFormat }: EntryListPro
   );
 }
 
-function EntryRow({
+/** One entry: icon, category (› child), note, amount. Tap to edit, swipe left to delete. */
+export function EntryRow({
   transaction: t,
   categories,
   cashback,
+  dateLabel,
 }: {
   transaction: Transaction;
   categories: Map<ID, Category>;
   /** Total cashback linked to this expense (full price is still what counts). */
   cashback?: Satang;
+  /** Shown before the note where rows aren't grouped by day (search results). */
+  dateLabel?: string;
 }) {
   const { openEdit } = useEntrySheet();
   const category = categories.get(t.categoryId);
@@ -86,7 +90,11 @@ function EntryRow({
               category?.name
             )}
           </span>
-          {t.note && <span className="block truncate text-xs text-muted-foreground">{t.note}</span>}
+          {(dateLabel || t.note) && (
+            <span className="block truncate text-xs text-muted-foreground">
+              {[dateLabel, t.note].filter(Boolean).join(" · ")}
+            </span>
+          )}
           {cashback !== undefined && (
             <span className="block text-xs text-muted-foreground">
               {strings.cashbackLine} <Money value={cashback} kind="income" />

@@ -68,3 +68,8 @@ export function useCashbackTotals(expenseIds: readonly ID[]): Map<ID, Satang> | 
     return totals;
   }, [key]); // `key` stands for the id list
 }
+
+/** Every live entry (search filters these in memory). */
+export function useAllTransactions() {
+  return useLiveQuery(() => db.transactions.filter(isLive).toArray(), []);
+}
