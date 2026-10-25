@@ -7,7 +7,7 @@ import { listBudgets } from "@/lib/repo/budgets";
 import { SETTINGS_ID } from "@/lib/repo/settings";
 import { isLive } from "@/lib/repo/base";
 import { listLinkedCashback, listTransactions, recentCategoryIds } from "@/lib/repo/transactions";
-import type { Category, EntryType, ID, MonthStr, Transaction } from "@/types";
+import type { Category, EntryType, ID, MonthStr, Satang, Transaction } from "@/types";
 
 // Live queries: components re-render when the underlying rows change.
 
@@ -53,4 +53,15 @@ export function useLinkedCashback(expenseId: ID | undefined): Transaction[] | un
 /** Every live entry (search filters these in memory). */
 export function useAllTransactions() {
   return useLiveQuery(() => db.transactions.filter(isLive).toArray(), []);
+}
+
+/** All-time balance: every live income minus every live expense. Updates live. */
+export function useBalance(): Satang | undefined {
+  return useLiveQuery(async () => {
+    let balance = 0;
+    await db.transactions.each((t) => {
+      if (t.deletedAt === null) balance += t.type === "income" ? t.amount : -t.amount;
+    });
+    return balance;
+  }, []);
 }

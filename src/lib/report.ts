@@ -161,3 +161,22 @@ export function bestAndWorst(
   const worst = active.reduce((a, b) => (b.net < a.net ? b : a));
   return { best, worst };
 }
+
+export interface YearTotals extends Totals {
+  year: number;
+}
+
+/** Income/expense/net per calendar year, newest first (only years with entries). */
+export function yearlyTotals(transactions: readonly Transaction[]): YearTotals[] {
+  const years = new Map<number, YearTotals>();
+  for (const t of transactions) {
+    if (t.deletedAt !== null) continue;
+    const year = Number(t.date.slice(0, 4));
+    const y = years.get(year) ?? { year, income: 0, expense: 0, net: 0 };
+    if (t.type === "income") y.income += t.amount;
+    else y.expense += t.amount;
+    y.net = y.income - y.expense;
+    years.set(year, y);
+  }
+  return [...years.values()].sort((a, b) => b.year - a.year);
+}

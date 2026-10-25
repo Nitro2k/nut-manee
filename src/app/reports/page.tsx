@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronRight } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { AppHeader } from "@/components/app-header";
 import { CategoryIcon } from "@/components/category-icon";
@@ -18,15 +18,17 @@ import {
   useCategoryMap,
   useMonthTransactions,
   useSettings,
+  useAllTransactions,
   useYearTransactions,
 } from "@/hooks/use-data";
 import { totals as sumTotals, type Totals } from "@/lib/aggregate";
-import { addMonthsStr, formatMonth } from "@/lib/dates";
+import { addMonthsStr, formatDate, formatMonth, formatYear } from "@/lib/dates";
 import {
   bestAndWorst,
   cashbackSummary,
   compareByParent,
   monthlyTotals,
+  yearlyTotals,
   totalsByParent,
   type ParentChange,
 } from "@/lib/report";
@@ -37,7 +39,7 @@ import type { Category, EntryType, ID, MonthStr, Transaction, YearFormat } from 
 /** Rows shown in "vs last month"; the rest are small changes. */
 const COMPARE_ROWS = 5;
 
-type View = "month" | "year";
+type View = "month" | "year" | "all";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -99,6 +101,10 @@ export default function ReportsPage() {
     setMonth(m);
     setView("month");
   };
+  const openYear = (y: number) => {
+    setYear(y);
+    setView("year");
+  };
 
   return (
     <>
@@ -106,8 +112,10 @@ export default function ReportsPage() {
         title={
           view === "month" ? (
             <MonthSwitcher month={month} onChange={setMonth} yearFormat={settings.yearFormat} />
-          ) : (
+          ) : view === "year" ? (
             <YearSwitcher year={year} onChange={setYear} yearFormat={settings.yearFormat} />
+          ) : (
+            strings.allTime
           )
         }
         right={<PrivacyMenu />}
@@ -124,6 +132,7 @@ export default function ReportsPage() {
           options={[
             { value: "month", label: strings.reportMonth },
             { value: "year", label: strings.reportYear },
+            { value: "all", label: strings.reportAll },
           ]}
         />
         {view === "month" ? (
@@ -134,7 +143,7 @@ export default function ReportsPage() {
             type={type}
             setType={setType}
           />
-        ) : (
+        ) : view === "year" ? (
           <YearReport
             year={year}
             setYear={setYear}
@@ -143,6 +152,14 @@ export default function ReportsPage() {
             setType={setType}
             yearFormat={settings.yearFormat}
             onOpenMonth={openMonth}
+          />
+        ) : (
+          <AllReport
+            categories={categories}
+            type={type}
+            setType={setType}
+            yearFormat={settings.yearFormat}
+            onOpenYear={openYear}
           />
         )}
       </main>
@@ -332,6 +349,55 @@ function YearReport({
           <Breakdown transactions={transactions} {...shared} />
         </>
       )}
+    </>
+  );
+}
+
+/** Everything ever: totals, a by-year list (tap to open the year), categories and cashback. */
+function AllReport({
+  yearFormat,
+  onOpenYear,
+  ...shared
+}: SharedProps & { yearFormat: YearFormat; onOpenYear: (year: number) => void }) {
+  const transactions = useAllTransactions();
+  if (!transactions) return null;
+  if (transactions.length === 0) return <Empty title={strings.noReportData} />;
+
+  const years = yearlyTotals(transactions);
+  const dates = transactions.map((t) => t.date).sort();
+  const first = dates[0];
+  const last = dates.at(-1);
+
+  return (
+    <>
+      <div className="space-y-2">
+        {/* No months to swipe through here. */}
+        <Summary totals={sumTotals(transactions)} onSwipe={() => {}} />
+        {first && last && (
+          <p className="px-1 text-sm text-muted-foreground">
+            {formatDate(first, yearFormat)} – {formatDate(last, yearFormat)}
+          </p>
+        )}
+      </div>
+      <Section title={strings.byYear}>
+        <ul className="divide-y rounded-xl border">
+          {years.map((y) => (
+            <li key={y.year}>
+              <PressableRow
+                label={strings.yearDetails(formatYear(y.year, yearFormat))}
+                onPress={() => onOpenYear(y.year)}
+                className="flex min-h-12 items-center gap-3 px-4 py-3 text-sm"
+                testId="year-row"
+              >
+                <span className="flex-1 font-medium">{formatYear(y.year, yearFormat)}</span>
+                <Money value={y.net} kind="net" className="font-medium" />
+                <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+              </PressableRow>
+            </li>
+          ))}
+        </ul>
+      </Section>
+      <Breakdown transactions={transactions} {...shared} />
     </>
   );
 }

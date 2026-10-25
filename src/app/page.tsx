@@ -7,6 +7,7 @@ import { DueRecurring } from "@/components/home/due-recurring";
 import { EntryList } from "@/components/home/entry-list";
 import { InstallHint } from "@/components/home/install-hint";
 import { MonthSwitcher } from "@/components/home/month-switcher";
+import { BalanceLine } from "@/components/home/balance-line";
 import { SummaryCard } from "@/components/home/summary-card";
 import { useMonth } from "@/components/month-provider";
 import { PrivacyMenu } from "@/components/privacy-menu";
@@ -38,6 +39,7 @@ export default function Home() {
             totals={totals(transactions ?? [])}
             onSwipe={(direction) => setMonth(addMonthsStr(month, direction))}
           />
+          <BalanceLine />
           {transactions && categories && (
             <BudgetAlerts transactions={transactions} categories={categories} />
           )}

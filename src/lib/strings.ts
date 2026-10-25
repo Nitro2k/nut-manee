@@ -201,6 +201,11 @@ export const strings = {
 
   reportMonth: "Month",
   reportYear: "Year",
+  reportAll: "All",
+  allTime: "All time",
+  byYear: "By year",
+  yearDetails: (year: string) => `${year}: open year`,
+  balanceHint: "All income minus all expense, ever.",
   previousYear: "Previous year",
   nextYear: "Next year",
   byMonth: "By month",
