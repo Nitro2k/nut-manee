@@ -199,6 +199,17 @@ export const strings = {
   noReportData: "Nothing to report this month",
   noReportDataHint: "Entries you add show up here.",
 
+  reportMonth: "Month",
+  reportYear: "Year",
+  previousYear: "Previous year",
+  nextYear: "Next year",
+  byMonth: "By month",
+  bestMonth: "Best month",
+  worstMonth: "Worst month",
+  viewMonth: "Open month",
+  monthDetails: (month: string) => `${month}: tap for details`,
+  noYearData: "Nothing to report this year",
+
   // Settings (More)
   display: "Display",
   yearFormat: "Year",

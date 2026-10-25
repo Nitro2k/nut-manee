@@ -10,17 +10,33 @@ import { Money } from "@/components/money";
 import { useMonth } from "@/components/month-provider";
 import { PrivacyMenu } from "@/components/privacy-menu";
 import { CategoryBars, percentLabel } from "@/components/reports/category-bars";
+import { YearSwitcher } from "@/components/reports/year-switcher";
+import { YearTrend } from "@/components/reports/year-trend";
 import { TAB_BAR_SPACE } from "@/components/tab-bar";
-import { useCategoryMap, useMonthTransactions, useSettings } from "@/hooks/use-data";
-import { totals as sumTotals } from "@/lib/aggregate";
-import { addMonthsStr } from "@/lib/dates";
-import { cashbackSummary, compareByParent, totalsByParent, type ParentChange } from "@/lib/report";
+import {
+  useCategoryMap,
+  useMonthTransactions,
+  useSettings,
+  useYearTransactions,
+} from "@/hooks/use-data";
+import { totals as sumTotals, type Totals } from "@/lib/aggregate";
+import { addMonthsStr, formatMonth } from "@/lib/dates";
+import {
+  bestAndWorst,
+  cashbackSummary,
+  compareByParent,
+  monthlyTotals,
+  totalsByParent,
+  type ParentChange,
+} from "@/lib/report";
 import { strings } from "@/lib/strings";
 import { cn } from "@/lib/utils";
-import type { EntryType } from "@/types";
+import type { Category, EntryType, ID, MonthStr, Transaction, YearFormat } from "@/types";
 
 /** Rows shown in "vs last month"; the rest are small changes. */
 const COMPARE_ROWS = 5;
+
+type View = "month" | "year";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -31,122 +47,290 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
+function Segmented<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string; className?: string }[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="flex rounded-full bg-muted p-1" role="radiogroup" aria-label={label}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={value === o.value}
+          className={cn(
+            "h-9 flex-1 rounded-full text-sm font-medium",
+            value === o.value && cn("bg-background shadow-sm", o.className),
+          )}
+          onClick={() => onChange(o.value)}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const TYPE_OPTIONS: { value: EntryType; label: string; className: string }[] = [
+  { value: "expense", label: strings.expense, className: "text-red-600" },
+  { value: "income", label: strings.income, className: "text-emerald-600" },
+];
+
 export default function ReportsPage() {
   const { month, setMonth } = useMonth();
   const settings = useSettings();
   const categories = useCategoryMap();
-  const transactions = useMonthTransactions(month);
-  const previous = useMonthTransactions(addMonthsStr(month, -1));
+  const [view, setView] = useState<View>("month");
+  const [year, setYear] = useState(() => Number(month.slice(0, 4)));
   const [type, setType] = useState<EntryType>("expense");
 
-  if (!settings || !categories || !transactions || !previous) return null;
+  if (!settings || !categories) return null;
 
-  const totals = sumTotals(transactions);
-  const byParent = totalsByParent(transactions, categories, type);
-  const changes = compareByParent(byParent, totalsByParent(previous, categories, type)).slice(
-    0,
-    COMPARE_ROWS,
-  );
-  const cashback = cashbackSummary(transactions, categories);
-  const rate = totals.income > 0 ? Math.round((totals.net * 100) / totals.income) : null;
+  const openMonth = (m: MonthStr) => {
+    setMonth(m);
+    setView("month");
+  };
 
   return (
     <>
       <AppHeader
-        title={<MonthSwitcher month={month} onChange={setMonth} yearFormat={settings.yearFormat} />}
+        title={
+          view === "month" ? (
+            <MonthSwitcher month={month} onChange={setMonth} yearFormat={settings.yearFormat} />
+          ) : (
+            <YearSwitcher year={year} onChange={setYear} yearFormat={settings.yearFormat} />
+          )
+        }
         right={<PrivacyMenu />}
       />
       <main className={cn("space-y-6 p-4", TAB_BAR_SPACE)}>
-        <div className="space-y-2">
-          <SummaryCard
-            totals={totals}
-            onSwipe={(direction) => setMonth(addMonthsStr(month, direction))}
+        <Segmented
+          label={strings.reports}
+          value={view}
+          onChange={(next) => {
+            // Keep the two views on the same period when switching.
+            if (next === "year") setYear(Number(month.slice(0, 4)));
+            setView(next);
+          }}
+          options={[
+            { value: "month", label: strings.reportMonth },
+            { value: "year", label: strings.reportYear },
+          ]}
+        />
+        {view === "month" ? (
+          <MonthReport
+            month={month}
+            setMonth={setMonth}
+            categories={categories}
+            type={type}
+            setType={setType}
           />
-          {rate !== null && (
-            <p className="px-1 text-sm text-muted-foreground" data-testid="savings-rate">
-              {rate >= 0 ? strings.savedRate(rate) : strings.overspentRate(-rate)}
-            </p>
-          )}
-        </div>
-
-        {transactions.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="font-medium">{strings.noReportData}</p>
-            <p className="text-sm text-muted-foreground">{strings.noReportDataHint}</p>
-          </div>
         ) : (
-          <>
-            <div
-              className="flex rounded-full bg-muted p-1"
-              role="radiogroup"
-              aria-label={strings.type}
-            >
-              {(["expense", "income"] as const).map((t) => (
+          <YearReport
+            year={year}
+            setYear={setYear}
+            categories={categories}
+            type={type}
+            setType={setType}
+            yearFormat={settings.yearFormat}
+            onOpenMonth={openMonth}
+          />
+        )}
+      </main>
+    </>
+  );
+}
+
+interface SharedProps {
+  categories: Map<ID, Category>;
+  type: EntryType;
+  setType: (type: EntryType) => void;
+}
+
+function Summary({ totals, onSwipe }: { totals: Totals; onSwipe: (direction: -1 | 1) => void }) {
+  const rate = totals.income > 0 ? Math.round((totals.net * 100) / totals.income) : null;
+  return (
+    <div className="space-y-2">
+      <SummaryCard totals={totals} onSwipe={onSwipe} />
+      {rate !== null && (
+        <p className="px-1 text-sm text-muted-foreground" data-testid="savings-rate">
+          {rate >= 0 ? strings.savedRate(rate) : strings.overspentRate(-rate)}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Type toggle + category bars + cashback: the parts both views share. */
+function Breakdown({
+  transactions,
+  categories,
+  type,
+  setType,
+  children,
+}: SharedProps & { transactions: Transaction[]; children?: ReactNode }) {
+  const byParent = totalsByParent(transactions, categories, type);
+  const cashback = cashbackSummary(transactions, categories);
+  const expense = sumTotals(transactions).expense;
+  return (
+    <>
+      <Segmented label={strings.type} value={type} onChange={setType} options={TYPE_OPTIONS} />
+      <Section title={strings.byCategory}>
+        {byParent.length > 0 ? (
+          <CategoryBars totals={byParent} type={type} />
+        ) : (
+          <p className="px-1 text-sm text-muted-foreground">{strings.noEntries}</p>
+        )}
+      </Section>
+      {children}
+      {cashback.total > 0 && (
+        <Section title={strings.cashbackThisMonth}>
+          <dl className="divide-y rounded-xl border text-sm">
+            {cashback.bySource.map((s) => (
+              <div key={s.category?.id ?? "general"} className="flex justify-between px-4 py-3">
+                <dt>{s.category?.name ?? strings.general}</dt>
+                <dd>
+                  <Money value={s.amount} kind="income" />
+                </dd>
+              </div>
+            ))}
+            {cashback.linked > 0 && (
+              <div className="flex justify-between px-4 py-3 font-medium">
+                <dt>{strings.expenseAfterCashback}</dt>
+                <dd>
+                  <Money value={expense - cashback.linked} kind="expense" />
+                </dd>
+              </div>
+            )}
+          </dl>
+        </Section>
+      )}
+    </>
+  );
+}
+
+function Empty({ title }: { title: string }) {
+  return (
+    <div className="py-12 text-center">
+      <p className="font-medium">{title}</p>
+      <p className="text-sm text-muted-foreground">{strings.noReportDataHint}</p>
+    </div>
+  );
+}
+
+function MonthReport({
+  month,
+  setMonth,
+  ...shared
+}: SharedProps & { month: MonthStr; setMonth: (month: MonthStr) => void }) {
+  const transactions = useMonthTransactions(month);
+  const previous = useMonthTransactions(addMonthsStr(month, -1));
+  if (!transactions || !previous) return null;
+
+  const changes = compareByParent(
+    totalsByParent(transactions, shared.categories, shared.type),
+    totalsByParent(previous, shared.categories, shared.type),
+  ).slice(0, COMPARE_ROWS);
+
+  return (
+    <>
+      <Summary
+        totals={sumTotals(transactions)}
+        onSwipe={(direction) => setMonth(addMonthsStr(month, direction))}
+      />
+      {transactions.length === 0 ? (
+        <Empty title={strings.noReportData} />
+      ) : (
+        <Breakdown transactions={transactions} {...shared}>
+          <Section title={strings.vsLastMonth}>
+            {changes.length > 0 ? (
+              <ul className="divide-y rounded-xl border">
+                {changes.map((c) => (
+                  <ChangeRow key={c.category.id} change={c} type={shared.type} />
+                ))}
+              </ul>
+            ) : (
+              <p className="px-1 text-sm text-muted-foreground">{strings.vsLastMonthEmpty}</p>
+            )}
+          </Section>
+        </Breakdown>
+      )}
+    </>
+  );
+}
+
+function YearReport({
+  year,
+  setYear,
+  yearFormat,
+  onOpenMonth,
+  ...shared
+}: SharedProps & {
+  year: number;
+  setYear: (year: number) => void;
+  yearFormat: YearFormat;
+  onOpenMonth: (month: MonthStr) => void;
+}) {
+  const transactions = useYearTransactions(year);
+  const [selected, setSelected] = useState<MonthStr | null>(null);
+  if (!transactions) return null;
+
+  const months = monthlyTotals(transactions, year);
+  const extremes = bestAndWorst(months);
+
+  return (
+    <>
+      <Summary
+        totals={sumTotals(transactions)}
+        onSwipe={(direction) => setYear(year + direction)}
+      />
+      {transactions.length === 0 ? (
+        <Empty title={strings.noYearData} />
+      ) : (
+        <>
+          <Section title={strings.byMonth}>
+            <YearTrend
+              months={months}
+              selected={selected?.startsWith(`${year}-`) ? selected : null}
+              onSelect={(m) => setSelected(m === selected ? null : m)}
+              onOpenMonth={onOpenMonth}
+              yearFormat={yearFormat}
+            />
+          </Section>
+          {extremes && extremes.best.month !== extremes.worst.month && (
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {(
+                [
+                  [strings.bestMonth, extremes.best],
+                  [strings.worstMonth, extremes.worst],
+                ] as const
+              ).map(([label, m]) => (
                 <button
-                  key={t}
+                  key={label}
                   type="button"
-                  role="radio"
-                  aria-checked={type === t}
-                  className={cn(
-                    "h-9 flex-1 rounded-full text-sm font-medium",
-                    type === t && "bg-background shadow-sm",
-                    type === t && (t === "income" ? "text-emerald-600" : "text-red-600"),
-                  )}
-                  onClick={() => setType(t)}
+                  className="rounded-xl border p-3 text-left"
+                  onClick={() => onOpenMonth(m.month)}
                 >
-                  {t === "income" ? strings.income : strings.expense}
+                  <span className="block text-xs text-muted-foreground">{label}</span>
+                  <span className="block font-medium">{formatMonth(m.month, yearFormat)}</span>
+                  <span className="block tabular-nums">
+                    <Money value={m.net} kind="net" />
+                  </span>
                 </button>
               ))}
             </div>
-
-            <Section title={strings.byCategory}>
-              {byParent.length > 0 ? (
-                <CategoryBars totals={byParent} type={type} />
-              ) : (
-                <p className="px-1 text-sm text-muted-foreground">{strings.noEntries}</p>
-              )}
-            </Section>
-
-            <Section title={strings.vsLastMonth}>
-              {changes.length > 0 ? (
-                <ul className="divide-y rounded-xl border">
-                  {changes.map((c) => (
-                    <ChangeRow key={c.category.id} change={c} type={type} />
-                  ))}
-                </ul>
-              ) : (
-                <p className="px-1 text-sm text-muted-foreground">{strings.vsLastMonthEmpty}</p>
-              )}
-            </Section>
-
-            {cashback.total > 0 && (
-              <Section title={strings.cashbackThisMonth}>
-                <dl className="divide-y rounded-xl border text-sm">
-                  {cashback.bySource.map((s) => (
-                    <div
-                      key={s.category?.id ?? "general"}
-                      className="flex justify-between px-4 py-3"
-                    >
-                      <dt>{s.category?.name ?? strings.general}</dt>
-                      <dd>
-                        <Money value={s.amount} kind="income" />
-                      </dd>
-                    </div>
-                  ))}
-                  {cashback.linked > 0 && (
-                    <div className="flex justify-between px-4 py-3 font-medium">
-                      <dt>{strings.expenseAfterCashback}</dt>
-                      <dd>
-                        <Money value={totals.expense - cashback.linked} kind="expense" />
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </Section>
-            )}
-          </>
-        )}
-      </main>
+          )}
+          <Breakdown transactions={transactions} {...shared} />
+        </>
+      )}
     </>
   );
 }

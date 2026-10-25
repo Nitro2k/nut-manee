@@ -1,6 +1,7 @@
-import type { Category, EntryType, ID, Satang, Transaction } from "@/types";
+import type { Totals } from "@/lib/aggregate";
+import type { Category, EntryType, ID, MonthStr, Satang, Transaction } from "@/types";
 
-// Monthly report math (SPEC §7.3). Pure: callers pass one month's live transactions.
+// Report math (SPEC §7.3). Pure: callers pass the period's live transactions.
 
 export interface ChildTotal {
   /** null = entries on the parent itself ("General"). */
@@ -121,4 +122,42 @@ export function cashbackSummary(
       ? [{ category: null, amount: income.amount }]
       : [];
   return { total: income?.amount ?? 0, bySource, linked };
+}
+
+export interface MonthTotals extends Totals {
+  month: MonthStr;
+  /** Whether the month has any entries (empty months are skipped for best/worst). */
+  hasEntries: boolean;
+}
+
+/** Income/expense/net for each of the 12 months of `year`, Jan first. */
+export function monthlyTotals(transactions: readonly Transaction[], year: number): MonthTotals[] {
+  const months = Array.from({ length: 12 }, (_, i) => ({
+    month: `${year}-${String(i + 1).padStart(2, "0")}`,
+    income: 0,
+    expense: 0,
+    net: 0,
+    hasEntries: false,
+  }));
+  for (const t of transactions) {
+    if (t.deletedAt !== null || !t.date.startsWith(`${year}-`)) continue;
+    const m = months[Number(t.date.slice(5, 7)) - 1];
+    if (!m) continue;
+    m.hasEntries = true;
+    if (t.type === "income") m.income += t.amount;
+    else m.expense += t.amount;
+    m.net = m.income - m.expense;
+  }
+  return months;
+}
+
+/** Months with the highest and lowest net (ties: the earlier month). Null with no entries. */
+export function bestAndWorst(
+  months: readonly MonthTotals[],
+): { best: MonthTotals; worst: MonthTotals } | null {
+  const active = months.filter((m) => m.hasEntries);
+  if (active.length === 0) return null;
+  const best = active.reduce((a, b) => (b.net > a.net ? b : a));
+  const worst = active.reduce((a, b) => (b.net < a.net ? b : a));
+  return { best, worst };
 }

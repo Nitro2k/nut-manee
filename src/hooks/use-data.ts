@@ -2,7 +2,7 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
-import { monthRange } from "@/lib/dates";
+import { monthRange, yearRange } from "@/lib/dates";
 import { listBudgets } from "@/lib/repo/budgets";
 import { SETTINGS_ID } from "@/lib/repo/settings";
 import { isLive } from "@/lib/repo/base";
@@ -20,6 +20,13 @@ export function useMonthTransactions(month: MonthStr) {
     const { start, end } = monthRange(month);
     return listTransactions(start, end);
   }, [month]);
+}
+
+export function useYearTransactions(year: number) {
+  return useLiveQuery(() => {
+    const { start, end } = yearRange(year);
+    return listTransactions(start, end);
+  }, [year]);
 }
 
 /** Every category by id, including archived and deleted ones (old entries still need names). */
