@@ -1,5 +1,8 @@
 "use client";
 
+// REMOVE-AFTER-MIGRATION: one-time import from the old app (SPEC §9.4). Delete once the
+// history is imported on the phone, backed up as NoMoney JSON, and the old app is retired.
+
 import { useLiveQuery } from "dexie-react-hooks";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";

@@ -246,7 +246,7 @@ export const strings = {
   updateDownloading: "Downloading the update…",
   updateUnavailable: "Updates work in the installed app, when online.",
 
-  // Import from old app (.paotang)
+  // Import from old app (.paotang). REMOVE-AFTER-MIGRATION: delete this block with the importer.
   importOld: "Import from old app",
   importOldHint: "Bring in your history from a .paotang backup.",
   importTitle: "Import from old app",

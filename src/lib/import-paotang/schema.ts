@@ -1,3 +1,6 @@
+// REMOVE-AFTER-MIGRATION: one-time import from the old app (SPEC §9.4). Delete once the
+// history is imported on the phone, backed up as NoMoney JSON, and the old app is retired.
+
 import { z } from "zod";
 
 // The old app's backup (SPEC §9.1). Lenient: only the fields the importer uses are required,

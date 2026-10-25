@@ -1,3 +1,6 @@
+// REMOVE-AFTER-MIGRATION: one-time import from the old app (SPEC §9.4). Delete once the
+// history is imported on the phone, backed up as NoMoney JSON, and the old app is retired.
+
 import { db } from "@/lib/db";
 import { nowISO } from "@/lib/dates";
 import { addCategory } from "@/lib/repo/categories";

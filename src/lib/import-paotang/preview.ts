@@ -1,3 +1,6 @@
+// REMOVE-AFTER-MIGRATION: one-time import from the old app (SPEC §9.4). Delete once the
+// history is imported on the phone, backed up as NoMoney JSON, and the old app is retired.
+
 import { isValidAmount } from "@/lib/money";
 import { DEFAULT_CATEGORY_ICON } from "@/lib/seed-data";
 import type { Category, DateStr, EntryType, ID, Satang, TimeStr, Transaction } from "@/types";

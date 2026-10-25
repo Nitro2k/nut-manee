@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
 import { exportBackup, exportCsv } from "@/components/backup/export-actions";
 import { RestoreSheet } from "@/components/backup/restore-sheet";
-import { ImportSheet } from "@/components/import/import-sheet";
+import { ImportSheet } from "@/components/import/import-sheet"; // REMOVE-AFTER-MIGRATION
 import { StorageCard } from "@/components/more/storage-card";
 import { TAB_BAR_SPACE } from "@/components/tab-bar";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { readBackupFile } from "@/lib/backup/import";
 import { BackupError } from "@/lib/backup/migrations";
 import type { Backup } from "@/lib/backup/schema";
 import { formatDateTime } from "@/lib/dates";
+// REMOVE-AFTER-MIGRATION
 import { PaotangError, parsePaotang, type PaotangFile } from "@/lib/import-paotang/schema";
 import { updateSettings } from "@/lib/repo/settings";
 import { strings } from "@/lib/strings";
@@ -31,9 +32,9 @@ const ERROR_MESSAGES: Record<BackupError["reason"], string> = {
 export default function BackupPage() {
   const settings = useSettings();
   const fileInput = useRef<HTMLInputElement>(null);
-  const oldAppInput = useRef<HTMLInputElement>(null);
+  const oldAppInput = useRef<HTMLInputElement>(null); // REMOVE-AFTER-MIGRATION
   const [backup, setBackup] = useState<Backup | null>(null);
-  const [oldApp, setOldApp] = useState<PaotangFile | null>(null);
+  const [oldApp, setOldApp] = useState<PaotangFile | null>(null); // REMOVE-AFTER-MIGRATION
   const [busy, setBusy] = useState(false);
 
   const busyWhile = async (action: () => Promise<unknown>) => {
@@ -57,6 +58,7 @@ export default function BackupPage() {
     }
   };
 
+  // REMOVE-AFTER-MIGRATION: old-app (.paotang) import.
   const onOldAppFile = async (file: File | undefined) => {
     if (!file) return;
     try {
@@ -135,6 +137,7 @@ export default function BackupPage() {
             disabled={busy}
             onClick={() => fileInput.current?.click()}
           />
+          {/* REMOVE-AFTER-MIGRATION: "Import from old app" row (and its file input below). */}
           <ActionRow
             icon={<History />}
             label={strings.importOld}
@@ -169,6 +172,7 @@ export default function BackupPage() {
         <StorageCard />
       </main>
       <RestoreSheet backup={backup} onClose={() => setBackup(null)} />
+      {/* REMOVE-AFTER-MIGRATION */}
       <ImportSheet file={oldApp} onClose={() => setOldApp(null)} />
     </>
   );
