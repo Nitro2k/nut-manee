@@ -186,6 +186,20 @@ export const strings = {
   overBudget: "Over budget",
   budgetAlertsLabel: "Budget alerts",
 
+  // Settings (More)
+  display: "Display",
+  yearFormat: "Year",
+  yearCE: (year: string) => `Gregorian (${year})`,
+  yearBE: (year: string) => `Buddhist (${year})`,
+  about: "About",
+  appVersion: "App version",
+  dataVersion: "Data version",
+  checkForUpdate: "Check for update",
+  checking: "Checking…",
+  upToDate: "You're on the latest version",
+  updateDownloading: "Downloading the update…",
+  updateUnavailable: "Updates work in the installed app, when online.",
+
   // Storage
   storage: "Storage",
   storageUsed: "Used on this device",

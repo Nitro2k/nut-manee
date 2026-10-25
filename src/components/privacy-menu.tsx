@@ -44,9 +44,41 @@ function SwitchRow({
   );
 }
 
+/**
+ * Per-kind show/hide switches plus auto-hide. Shared by the eye popup and More, so both
+ * always edit the same settings. `idPrefix` keeps label ids unique per place.
+ */
+export function PrivacySwitches({ idPrefix }: { idPrefix: string }) {
+  const { privacy, autoHideOnBackground } = usePrivacy();
+  return (
+    <>
+      <p className="mb-1 font-medium">{strings.showAmounts}</p>
+      {KINDS.map(({ key, label }) => (
+        <SwitchRow
+          key={key}
+          id={`${idPrefix}-${key}`}
+          label={label}
+          checked={!privacy[key]}
+          onChange={(show) => updateSettings({ privacy: { [key]: !show } })}
+        />
+      ))}
+      <p className="mt-1 text-xs text-muted-foreground">{strings.privacyHint}</p>
+      <div className="mt-3 border-t pt-2">
+        <SwitchRow
+          id={`${idPrefix}-autoHideOnBackground`}
+          label={strings.autoHideOnBackground}
+          hint={strings.autoHideHint}
+          checked={autoHideOnBackground}
+          onChange={(checked) => updateSettings({ autoHideOnBackground: checked })}
+        />
+      </div>
+    </>
+  );
+}
+
 /** Eye button that opens per-kind show/hide settings. */
 export function PrivacyMenu() {
-  const { privacy, autoHideOnBackground } = usePrivacy();
+  const { privacy } = usePrivacy();
   const someHidden = anyHidden(privacy);
 
   return (
@@ -57,26 +89,7 @@ export function PrivacyMenu() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72">
-        <p className="mb-1 font-medium">{strings.showAmounts}</p>
-        {KINDS.map(({ key, label }) => (
-          <SwitchRow
-            key={key}
-            id={key}
-            label={label}
-            checked={!privacy[key]}
-            onChange={(show) => updateSettings({ privacy: { [key]: !show } })}
-          />
-        ))}
-        <p className="mt-1 text-xs text-muted-foreground">{strings.privacyHint}</p>
-        <div className="mt-3 border-t pt-2">
-          <SwitchRow
-            id="autoHideOnBackground"
-            label={strings.autoHideOnBackground}
-            hint={strings.autoHideHint}
-            checked={autoHideOnBackground}
-            onChange={(checked) => updateSettings({ autoHideOnBackground: checked })}
-          />
-        </div>
+        <PrivacySwitches idPrefix="popup" />
       </PopoverContent>
     </Popover>
   );
