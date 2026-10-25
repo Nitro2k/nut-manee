@@ -186,6 +186,19 @@ export const strings = {
   overBudget: "Over budget",
   budgetAlertsLabel: "Budget alerts",
 
+  // Reports
+  byCategory: "By category",
+  vsLastMonth: "vs last month",
+  vsLastMonthEmpty: "No change from last month.",
+  newThisMonth: "New",
+  savedRate: (percent: number) => `Saved ${percent}% of income`,
+  overspentRate: (percent: number) => `Spent ${percent}% more than income`,
+  cashbackThisMonth: "Cashback",
+  expenseAfterCashback: "Expense after cashback",
+  showDetails: (name: string) => `${name}: show breakdown`,
+  noReportData: "Nothing to report this month",
+  noReportDataHint: "Entries you add show up here.",
+
   // Settings (More)
   display: "Display",
   yearFormat: "Year",
