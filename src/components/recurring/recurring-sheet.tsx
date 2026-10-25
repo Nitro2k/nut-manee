@@ -187,7 +187,7 @@ function RecurringForm({ target, onDone }: { target: RecurringSheetTarget; onDon
           onChange={changeType}
           options={[
             { value: "expense", label: strings.expense, className: "text-red-600" },
-            { value: "income", label: strings.income, className: "text-emerald-600" },
+            { value: "income", label: strings.income, className: "text-emerald-700" },
           ]}
         />
 

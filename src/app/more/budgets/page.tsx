@@ -9,6 +9,7 @@ import { BudgetSheet, type BudgetSheetTarget } from "@/components/budgets/budget
 import { CategoryIcon } from "@/components/category-icon";
 import { MonthSwitcher } from "@/components/home/month-switcher";
 import { Money } from "@/components/money";
+import { PressableRow } from "@/components/pressable-row";
 import { useMonth } from "@/components/month-provider";
 import { TAB_BAR_SPACE } from "@/components/tab-bar";
 import { Button } from "@/components/ui/button";
@@ -58,14 +59,11 @@ export default function BudgetsPage() {
             const open = () => setSheet({ category, limit: status?.limit ?? null });
             return (
               <li key={category.id}>
-                {/* div, not button: the amounts inside are their own tap-to-reveal buttons. */}
-                <div
-                  role="button"
-                  tabIndex={0}
-                  className="flex min-h-14 cursor-pointer items-center gap-3 px-4 py-3 text-sm"
-                  onClick={open}
-                  onKeyDown={(e) => e.key === "Enter" && open()}
-                  data-testid="budget-row"
+                <PressableRow
+                  label={strings.budgetFor(category.name)}
+                  onPress={open}
+                  className="flex min-h-14 items-center gap-3 px-4 py-3 text-sm"
+                  testId="budget-row"
                 >
                   <CategoryIcon name={category.icon} />
                   <div className="min-w-0 flex-1 space-y-1.5">
@@ -85,7 +83,11 @@ export default function BudgetsPage() {
                     {status && (
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
-                          <BudgetBar percent={status.percent} level={status.level} />
+                          <BudgetBar
+                            percent={status.percent}
+                            level={status.level}
+                            label={category.name}
+                          />
                         </div>
                         <span
                           className={cn(
@@ -98,7 +100,7 @@ export default function BudgetsPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </PressableRow>
               </li>
             );
           })}

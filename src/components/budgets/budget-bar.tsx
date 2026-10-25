@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 /** Bar color by level: neutral until 80%, amber at 80%, red at 100% (SPEC §7.1). */
 export const LEVEL_TEXT: Record<BudgetLevel, string> = {
   ok: "text-muted-foreground",
-  warn: "text-amber-600",
-  over: "text-red-600",
+  warn: "text-amber-700",
+  over: "text-red-700",
 };
 
 const LEVEL_BAR: Record<BudgetLevel, string> = {
@@ -15,11 +15,21 @@ const LEVEL_BAR: Record<BudgetLevel, string> = {
 };
 
 /** Progress bar; safe to show while amounts are hidden (it only reveals a percentage). */
-export function BudgetBar({ percent, level }: { percent: number; level: BudgetLevel }) {
+export function BudgetBar({
+  percent,
+  level,
+  label,
+}: {
+  percent: number;
+  level: BudgetLevel;
+  /** Accessible name, e.g. the category. */
+  label: string;
+}) {
   return (
     <div
       className="h-1.5 overflow-hidden rounded-full bg-muted"
       role="progressbar"
+      aria-label={label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.min(percent, 100)}

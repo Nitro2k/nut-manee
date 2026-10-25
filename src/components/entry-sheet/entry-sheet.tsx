@@ -187,7 +187,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
               className={cn(
                 "h-9 rounded-full px-4 text-sm font-medium disabled:opacity-40",
                 type === t && "bg-background shadow-sm",
-                type === t && (t === "income" ? "text-emerald-600" : "text-red-600"),
+                type === t && (t === "income" ? "text-emerald-700" : "text-red-600"),
               )}
               onClick={() => changeType(t)}
             >
@@ -213,7 +213,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
         <p
           className={cn(
             "min-h-11 truncate text-4xl font-semibold tabular-nums",
-            type === "income" ? "text-emerald-600" : "text-red-600",
+            type === "income" ? "text-emerald-700" : "text-red-600",
             !expr && "text-muted-foreground",
           )}
           data-testid="amount-expr"
@@ -248,7 +248,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
           {showCashback && (
             <div className="relative w-32">
               <BadgePercent
-                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-emerald-600"
+                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-emerald-700"
                 aria-hidden
               />
               <Input
@@ -258,7 +258,7 @@ function EntryForm({ target, onDone }: { target: EntrySheetTarget; onDone: () =>
                 aria-label={strings.cashbackLabel}
                 aria-invalid={!cashbackValid}
                 inputMode="decimal"
-                className="h-11 pl-8 text-base text-emerald-600 tabular-nums"
+                className="h-11 pl-8 text-base text-emerald-700 tabular-nums"
                 enterKeyHint="done"
                 onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
               />

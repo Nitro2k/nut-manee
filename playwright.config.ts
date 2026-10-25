@@ -9,7 +9,8 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: `http://localhost:${PORT}`,
-    trace: "on-first-retry",
+    // Keep a trace of any failure (incl. rare local flakes): `pnpm exec playwright show-trace`.
+    trace: "retain-on-failure",
   },
   projects: [{ name: "iphone", use: { ...devices["iPhone 15"] } }],
   webServer: {

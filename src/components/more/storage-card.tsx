@@ -47,12 +47,11 @@ export function StorageCard() {
 
 function Row({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="px-4 py-3">
-      <div className="flex items-baseline justify-between gap-4">
-        <dt>{label}</dt>
-        <dd className="text-right tabular-nums">{value}</dd>
-      </div>
-      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+    // dt/dd must be direct children of the row div (valid <dl> markup).
+    <div className="grid grid-cols-[1fr_auto] items-baseline gap-x-4 px-4 py-3">
+      <dt>{label}</dt>
+      <dd className="text-right tabular-nums">{value}</dd>
+      {hint && <dd className="col-span-2 mt-0.5 text-xs text-muted-foreground">{hint}</dd>}
     </div>
   );
 }

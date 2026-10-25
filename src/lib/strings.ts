@@ -35,6 +35,7 @@ export const strings = {
   reports: "Reports",
   search: "Search",
   more: "More",
+  mainNavigation: "Main",
   add: "Add",
   previousMonth: "Previous month",
   nextMonth: "Next month",

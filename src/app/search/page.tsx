@@ -58,7 +58,8 @@ export default function SearchPage() {
   // Typing stays responsive; the (possibly large) filter runs on the deferred value.
   const query = useDeferredValue(filters.query);
 
-  if (!settings || !categories || !all) return null;
+  // Show the page right away; results wait for all entries to load (can be ~20k).
+  if (!settings || !categories) return null;
 
   const update = (changes: Partial<SearchFilters>) => {
     setFilters((f) => ({ ...f, ...changes }));
@@ -76,7 +77,7 @@ export default function SearchPage() {
 
   const active = { ...filters, query };
   const searching = hasCriteria(active);
-  const results = searching ? searchTransactions(all, categories, active) : [];
+  const results = searching && all ? searchTransactions(all, categories, active) : [];
   const total = sumTotals(results);
   const filterCount = activeFilterCount(filters);
   const today = todayStr();
@@ -174,7 +175,7 @@ export default function SearchPage() {
           <p className="px-8 py-12 text-center text-sm text-muted-foreground">
             {strings.searchHint}
           </p>
-        ) : results.length === 0 ? (
+        ) : !all ? null : results.length === 0 ? (
           <div className="px-4 py-12 text-center">
             <p className="font-medium">{strings.noMatches}</p>
             <p className="text-sm text-muted-foreground">{strings.noMatchesHint}</p>
@@ -183,7 +184,7 @@ export default function SearchPage() {
           <div>
             {groups.map((g) => (
               <section key={g.month} aria-label={formatMonth(g.month, settings.yearFormat)}>
-                <h2 className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-[5] flex items-center justify-between border-b bg-muted/80 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur">
+                <h2 className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-[5] flex items-center justify-between border-b bg-muted/80 px-4 py-1.5 text-xs font-medium text-foreground/70 backdrop-blur">
                   <span>{formatMonth(g.month, settings.yearFormat)}</span>
                   <Money value={g.totals.net} kind="net" />
                 </h2>

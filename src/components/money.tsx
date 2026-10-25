@@ -11,7 +11,7 @@ import type { Satang } from "@/types";
 const MASK = "฿ ••••";
 
 const COLOR: Record<MoneyKind, string> = {
-  income: "text-emerald-600",
+  income: "text-emerald-700",
   expense: "text-red-600",
   net: "",
   balance: "",
@@ -55,7 +55,8 @@ export function Money({ value, kind, className, unmasked = false }: MoneyProps) 
       aria-pressed={revealed}
       aria-label={showMask ? strings.hiddenAmount : undefined}
       className={cn(
-        "cursor-pointer whitespace-nowrap tabular-nums select-none [-webkit-touch-callout:none]",
+        // pointer-events-auto: still tappable inside a PressableRow (which passes taps through).
+        "pointer-events-auto cursor-pointer whitespace-nowrap tabular-nums select-none [-webkit-touch-callout:none]",
         COLOR[kind],
         className,
       )}

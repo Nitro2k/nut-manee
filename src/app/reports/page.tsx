@@ -8,6 +8,7 @@ import { MonthSwitcher } from "@/components/home/month-switcher";
 import { SummaryCard } from "@/components/home/summary-card";
 import { Money } from "@/components/money";
 import { useMonth } from "@/components/month-provider";
+import { PressableRow } from "@/components/pressable-row";
 import { PrivacyMenu } from "@/components/privacy-menu";
 import { CategoryBars, percentLabel } from "@/components/reports/category-bars";
 import { YearSwitcher } from "@/components/reports/year-switcher";
@@ -81,7 +82,7 @@ function Segmented<T extends string>({
 
 const TYPE_OPTIONS: { value: EntryType; label: string; className: string }[] = [
   { value: "expense", label: strings.expense, className: "text-red-600" },
-  { value: "income", label: strings.income, className: "text-emerald-600" },
+  { value: "income", label: strings.income, className: "text-emerald-700" },
 ];
 
 export default function ReportsPage() {
@@ -313,18 +314,18 @@ function YearReport({
                   [strings.worstMonth, extremes.worst],
                 ] as const
               ).map(([label, m]) => (
-                <button
+                <PressableRow
                   key={label}
-                  type="button"
+                  label={`${label}: ${formatMonth(m.month, yearFormat)}`}
+                  onPress={() => onOpenMonth(m.month)}
                   className="rounded-xl border p-3 text-left"
-                  onClick={() => onOpenMonth(m.month)}
                 >
                   <span className="block text-xs text-muted-foreground">{label}</span>
                   <span className="block font-medium">{formatMonth(m.month, yearFormat)}</span>
                   <span className="block tabular-nums">
                     <Money value={m.net} kind="net" />
                   </span>
-                </button>
+                </PressableRow>
               ))}
             </div>
           )}
@@ -348,7 +349,7 @@ function ChangeRow({ change: c, type }: { change: ParentChange; type: EntryType 
       <span
         className={cn(
           "flex items-center gap-0.5 text-xs font-medium tabular-nums",
-          good ? "text-emerald-600" : "text-red-600",
+          good ? "text-emerald-700" : "text-red-600",
         )}
       >
         <Arrow className="size-3.5" aria-label={up ? "up" : "down"} />

@@ -8,6 +8,7 @@ import { useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { CategoryIcon } from "@/components/category-icon";
 import { Money } from "@/components/money";
+import { PressableRow } from "@/components/pressable-row";
 import { RecurringSheet, type RecurringSheetTarget } from "@/components/recurring/recurring-sheet";
 import { TAB_BAR_SPACE } from "@/components/tab-bar";
 import { Button } from "@/components/ui/button";
@@ -82,16 +83,13 @@ export default function RecurringPage() {
               const icon = categories?.get(r.categoryId)?.icon;
               return (
                 <li key={r.id}>
-                  {/* div, not button: the amount inside is its own tap-to-reveal button. */}
-                  <div
-                    role="button"
-                    tabIndex={0}
+                  <PressableRow
+                    label={r.name}
+                    onPress={() => setSheet({ mode: "edit", recurring: r })}
                     className={cn(
-                      "flex min-h-14 cursor-pointer items-center gap-3 px-4 py-3 text-sm",
+                      "flex min-h-14 items-center gap-3 px-4 py-3 text-sm",
                       !r.active && "text-muted-foreground",
                     )}
-                    onClick={() => setSheet({ mode: "edit", recurring: r })}
-                    onKeyDown={(e) => e.key === "Enter" && setSheet({ mode: "edit", recurring: r })}
                   >
                     {icon && <CategoryIcon name={icon} className={cn(!r.active && "opacity-40")} />}
                     <div className="min-w-0 flex-1">
@@ -101,7 +99,7 @@ export default function RecurringPage() {
                       </p>
                     </div>
                     <Money value={r.amount} kind={r.type} />
-                  </div>
+                  </PressableRow>
                 </li>
               );
             })}

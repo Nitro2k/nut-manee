@@ -76,7 +76,7 @@ export default function MorePage() {
     <>
       <AppHeader title={strings.more} />
       <main className={cn("space-y-6 p-4", TAB_BAR_SPACE)}>
-        <nav className="divide-y rounded-xl border">
+        <nav aria-label={strings.more} className="divide-y rounded-xl border">
           {LINKS.map(({ href, label, Icon }) => (
             <Link
               key={href}

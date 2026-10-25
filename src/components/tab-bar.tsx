@@ -37,7 +37,10 @@ export function TabBar() {
   );
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg border-t bg-background pb-[env(safe-area-inset-bottom)] sm:border-x">
+    <nav
+      aria-label={strings.mainNavigation}
+      className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg border-t bg-background pb-[env(safe-area-inset-bottom)] sm:border-x"
+    >
       <div className="flex items-center">
         {TABS.slice(0, 2).map(tab)}
         <div className="flex flex-1 justify-center">

@@ -4,8 +4,8 @@ import { CategoryIcon } from "@/components/category-icon";
 import { showDeletedToast } from "@/components/entry-sheet/entry-sheet";
 import { useEntrySheet } from "@/components/entry-sheet/entry-sheet-provider";
 import { Money } from "@/components/money";
+import { PressableRow } from "@/components/pressable-row";
 import { SwipeRow } from "@/components/swipe-row";
-import { useCashbackTotals } from "@/hooks/use-data";
 import { groupByDay } from "@/lib/aggregate";
 import { formatDayLabel, todayStr } from "@/lib/dates";
 import { deleteTransaction } from "@/lib/repo/transactions";
@@ -18,24 +18,35 @@ interface EntryListProps {
   yearFormat: YearFormat;
 }
 
+/**
+ * Linked cashback per expense id. Cashback is always saved on its expense's date
+ * (`setExpenseCashback`), so it's in the same list: no extra query.
+ */
+function cashbackByExpense(transactions: Transaction[]): Map<ID, Satang> {
+  const totals = new Map<ID, Satang>();
+  for (const t of transactions) {
+    if (t.linkedExpenseId)
+      totals.set(t.linkedExpenseId, (totals.get(t.linkedExpenseId) ?? 0) + t.amount);
+  }
+  return totals;
+}
+
 /** Entries grouped by day with sticky day headers and a daily net. */
 export function EntryList({ transactions, categories, yearFormat }: EntryListProps) {
   const today = todayStr();
-  const cashback = useCashbackTotals(
-    transactions.filter((t) => t.type === "expense").map((t) => t.id),
-  );
+  const cashback = cashbackByExpense(transactions);
   return (
     <div>
       {groupByDay(transactions).map((group) => (
         <section key={group.date} aria-label={formatDayLabel(group.date, yearFormat, today)}>
-          <h2 className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-[5] flex items-center justify-between border-b bg-muted/80 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur">
+          <h2 className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-[5] flex items-center justify-between border-b bg-muted/80 px-4 py-1.5 text-xs font-medium text-foreground/70 backdrop-blur">
             <span>{formatDayLabel(group.date, yearFormat, today)}</span>
             <Money value={group.totals.net} kind="net" />
           </h2>
           <ul className="divide-y">
             {group.transactions.map((t) => (
               <li key={t.id}>
-                <EntryRow transaction={t} categories={categories} cashback={cashback?.get(t.id)} />
+                <EntryRow transaction={t} categories={categories} cashback={cashback.get(t.id)} />
               </li>
             ))}
           </ul>
@@ -67,15 +78,15 @@ export function EntryRow({
     await deleteTransaction(t.id);
     showDeletedToast(t.id);
   };
+  const name = parent ? `${parent.name} › ${category?.name}` : (category?.name ?? "");
 
   return (
     <SwipeRow onDelete={remove}>
-      <div
-        role="button"
-        tabIndex={0}
-        className="flex min-h-14 w-full cursor-pointer items-center gap-3 px-4 py-2 text-left active:bg-muted"
-        onClick={() => openEdit(t)}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openEdit(t)}
+      <PressableRow
+        label={[name, dateLabel, t.note].filter(Boolean).join(", ")}
+        onPress={() => openEdit(t)}
+        className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left"
+        testId="entry-row"
       >
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
           <CategoryIcon name={category?.icon ?? ""} className="size-4" />
@@ -102,7 +113,7 @@ export function EntryRow({
           )}
         </span>
         <Money value={t.amount} kind={t.type} className="text-sm font-medium" />
-      </div>
+      </PressableRow>
     </SwipeRow>
   );
 }

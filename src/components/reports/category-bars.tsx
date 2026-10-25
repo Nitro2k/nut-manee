@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { CategoryIcon } from "@/components/category-icon";
 import { Money } from "@/components/money";
+import { PressableRow } from "@/components/pressable-row";
 import type { ParentTotal } from "@/lib/report";
 import { strings } from "@/lib/strings";
 import { cn } from "@/lib/utils";
@@ -32,19 +33,15 @@ export function CategoryBars({ totals, type }: { totals: ParentTotal[]; type: En
       {totals.map((p) => {
         const expanded = open === p.category.id;
         const canExpand = p.children.length > 0;
-        const toggle = () => canExpand && setOpen(expanded ? null : p.category.id);
+        const toggle = () => setOpen(expanded ? null : p.category.id);
         return (
           <li key={p.category.id}>
-            {/* div, not button: the amount inside is its own tap-to-reveal button. */}
-            <div
-              role="button"
-              tabIndex={0}
-              aria-expanded={canExpand ? expanded : undefined}
-              aria-label={canExpand ? strings.showDetails(p.category.name) : undefined}
-              className={cn("space-y-1.5 px-4 py-3 text-sm", canExpand && "cursor-pointer")}
-              onClick={toggle}
-              onKeyDown={(e) => e.key === "Enter" && toggle()}
-              data-testid="category-bar"
+            <PressableRow
+              label={strings.showDetails(p.category.name)}
+              onPress={canExpand ? toggle : undefined}
+              expanded={canExpand ? expanded : undefined}
+              className="space-y-1.5 px-4 py-3 text-sm"
+              testId="category-bar"
             >
               <div className="flex items-center gap-3">
                 <CategoryIcon name={p.category.icon} />
@@ -68,7 +65,7 @@ export function CategoryBars({ totals, type }: { totals: ParentTotal[]; type: En
                   style={{ width: `${Math.max(p.percent, 1)}%` }}
                 />
               </div>
-            </div>
+            </PressableRow>
             {expanded && (
               <ul className="space-y-2 bg-muted/40 py-2 pr-11 pl-12 text-sm">
                 {p.children.map((c) => (
