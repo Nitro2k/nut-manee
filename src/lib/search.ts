@@ -1,4 +1,4 @@
-import { totals, type Totals } from "@/lib/aggregate";
+import { newestFirst, totals, type Totals } from "@/lib/aggregate";
 import { parseBaht } from "@/lib/money";
 import type { Category, DateStr, EntryType, ID, MonthStr, Satang, Transaction } from "@/types";
 
@@ -70,12 +70,7 @@ export function searchTransactions(
         (text) => !!text && normalize(text).includes(query),
       );
     })
-    .sort(
-      (a, b) =>
-        b.date.localeCompare(a.date) ||
-        b.time.localeCompare(a.time) ||
-        b.createdAt.localeCompare(a.createdAt),
-    );
+    .sort(newestFirst);
 }
 
 export interface MonthGroup {

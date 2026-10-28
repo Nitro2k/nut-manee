@@ -33,3 +33,16 @@ export function groupByDay(transactions: readonly Transaction[]): DayGroup[] {
   }
   return [...byDate].map(([date, list]) => ({ date, transactions: list, totals: totals(list) }));
 }
+
+/**
+ * Newest first: by date, then by when the entry was saved (a stack: the last one you added
+ * is on top of its day, even when it's for an earlier date), then by time of day. Imported
+ * entries share one save moment, so among themselves the old app's times decide.
+ */
+export function newestFirst(a: Transaction, b: Transaction): number {
+  return (
+    b.date.localeCompare(a.date) ||
+    Date.parse(b.createdAt) - Date.parse(a.createdAt) ||
+    b.time.localeCompare(a.time)
+  );
+}

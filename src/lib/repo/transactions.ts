@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { nowISO } from "@/lib/dates";
+import { newestFirst } from "@/lib/aggregate";
 import { isValidAmount } from "@/lib/money";
 import type { DateStr, EntryType, ID, Satang, Transaction } from "@/types";
 import {
@@ -124,19 +125,14 @@ export async function listLinkedCashback(expenseId: ID): Promise<Transaction[]> 
   return db.transactions.where("linkedExpenseId").equals(expenseId).filter(isLive).toArray();
 }
 
-/** Live transactions with `start <= date <= end`, newest first (date, then time). */
+/** Live transactions with `start <= date <= end`, newest first (see `newestFirst`). */
 export async function listTransactions(start: DateStr, end: DateStr): Promise<Transaction[]> {
   const rows = await db.transactions
     .where("date")
     .between(start, end, true, true)
     .filter(isLive)
     .toArray();
-  return rows.sort(
-    (a, b) =>
-      b.date.localeCompare(a.date) ||
-      b.time.localeCompare(a.time) ||
-      b.createdAt.localeCompare(a.createdAt),
-  );
+  return rows.sort(newestFirst);
 }
 
 /**
