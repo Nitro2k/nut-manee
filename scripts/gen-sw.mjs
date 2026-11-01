@@ -1,4 +1,4 @@
-// Postbuild: write out/sw.js with a precache list of every file in out/ and a content hash
+// Run by `pnpm build` after `next build` (chained, not a postbuild hook): write out/sw.js with a precache list of every file in out/ and a content hash
 // as the cache version, so each deploy with changes gets a fresh cache.
 import { createHash } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
