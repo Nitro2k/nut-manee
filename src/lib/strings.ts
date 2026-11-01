@@ -245,6 +245,8 @@ export const strings = {
   about: "About",
   appVersion: "App version",
   dataVersion: "Data version",
+  updated: "Updated",
+  build: "Build",
   checkForUpdate: "Check for update",
   checking: "Checking…",
   upToDate: "You're on the latest version",

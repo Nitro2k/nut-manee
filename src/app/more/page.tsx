@@ -17,11 +17,11 @@ import { TAB_BAR_SPACE } from "@/components/tab-bar";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-data";
 import { DB_SCHEMA_VERSION } from "@/lib/db";
-import { formatYear } from "@/lib/dates";
+import { formatDateTime, formatYear } from "@/lib/dates";
 import { updateSettings } from "@/lib/repo/settings";
 import { strings } from "@/lib/strings";
 import { cn } from "@/lib/utils";
-import { APP_VERSION } from "@/lib/version";
+import { APP_VERSION, BUILD_COMMIT, BUILD_TIME } from "@/lib/version";
 import type { YearFormat } from "@/types";
 
 const LINKS: { href: string; label: string; Icon: LucideIcon }[] = [
@@ -128,6 +128,16 @@ export default function MorePage() {
             <div className="flex justify-between">
               <dt>{strings.appVersion}</dt>
               <dd className="tabular-nums">{APP_VERSION}</dd>
+            </div>
+            {BUILD_TIME && (
+              <div className="flex justify-between">
+                <dt>{strings.updated}</dt>
+                <dd className="tabular-nums">{formatDateTime(BUILD_TIME, settings.yearFormat)}</dd>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <dt>{strings.build}</dt>
+              <dd className="font-mono text-xs tabular-nums">{BUILD_COMMIT}</dd>
             </div>
             <div className="flex justify-between">
               <dt>{strings.dataVersion}</dt>
