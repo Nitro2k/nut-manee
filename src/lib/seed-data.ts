@@ -26,7 +26,8 @@ export const EXPENSE_CATEGORIES: SeedCategory[] = [
     children: [
       { name: "Fuel", icon: "fuel" },
       { name: "Taxi & Ride", icon: "car-taxi-front" },
-      { name: "Public transit", icon: "train-front" },
+      { name: "Train", icon: "train-front" },
+      { name: "Public transit", icon: "bus" },
       { name: "Parking", icon: "square-parking" },
       { name: "Maintenance", icon: "wrench" },
     ],
