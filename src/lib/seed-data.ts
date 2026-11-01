@@ -78,6 +78,7 @@ export const EXPENSE_CATEGORIES: SeedCategory[] = [
     children: [
       { name: "Medical", icon: "stethoscope" },
       { name: "Medicine", icon: "pill" },
+      { name: "Dental", icon: "smile" },
       { name: "Sports", icon: "dumbbell" },
     ],
   },

@@ -132,6 +132,9 @@ const dropIf =
   (note: string) =>
     keywords.includes(lower(note)) ? "" : note;
 
+/** A dental visit, not toothpaste/brushes (those stay in Toiletries). */
+const DENTAL_VISIT =
+  /ทำฟัน|ขูดหินปูน|อุดฟัน|ถอนฟัน|จัดฟัน|รักษารากฟัน|ทันตกรรม|หมอฟัน|คลินิกฟัน|dental|dentist/i;
 const AI_SERVICES = /claude|anthropic|chat\s*gpt|openai|gemini|copilot|perplexity|midjourney/i;
 const STREAMING = /youtube|netflix|spotify|disney/i;
 
@@ -157,6 +160,13 @@ export const CLEANUP_RULES: CleanupRule[] = [
     target: E("Haircut", "Personal care"),
     matches: (r) => r.type === "expense" && lower(r.note) === "ตัดผม",
     note: dropIf("ตัดผม"),
+  },
+  {
+    id: "dental",
+    label: "ทำฟัน / ขูดหินปูน … → Dental",
+    target: E("Dental", "Health", "smile"),
+    matches: (r) => r.type === "expense" && DENTAL_VISIT.test(r.note),
+    note: dropIf("ทำฟัน", "ขูดหินปูน"),
   },
   {
     id: "ai",
