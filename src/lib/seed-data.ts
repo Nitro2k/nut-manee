@@ -80,6 +80,7 @@ export const EXPENSE_CATEGORIES: SeedCategory[] = [
       { name: "Medical", icon: "stethoscope" },
       { name: "Medicine", icon: "pill" },
       { name: "Dental", icon: "smile" },
+      { name: "Checkups & vaccines", icon: "syringe" },
       { name: "Sports", icon: "dumbbell" },
     ],
   },
